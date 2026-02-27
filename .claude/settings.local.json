@@ -3,6 +3,6 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:tanstack.com)"
-    ]
+ ]
   }
 }
