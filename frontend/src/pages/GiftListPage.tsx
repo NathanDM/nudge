@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
@@ -11,6 +12,7 @@ export default function GiftListPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isOwnList = user?.id === userId;
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const { data: users } = useQuery<User[]>({
     queryKey: ['users'],
@@ -38,17 +40,47 @@ export default function GiftListPage() {
       </button>
       <h1 className="text-2xl font-bold text-teal mb-6">{listTitle}</h1>
 
-      <AddGiftForm forUserId={userId!} />
+      <div className="hidden md:block">
+        <AddGiftForm forUserId={userId!} />
+      </div>
 
       {isLoading ? (
         <div className="text-center text-dark-sage py-8">Chargement...</div>
       ) : (
-        <GiftList
-          gifts={gifts ?? []}
-          forUserId={userId!}
-          isOwnList={isOwnList}
-        />
+        <GiftList gifts={gifts ?? []} forUserId={userId!} isOwnList={isOwnList} />
       )}
+
+      <button
+        onClick={() => setIsDrawerOpen(true)}
+        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-sage text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light hover:bg-dark-sage transition-colors z-30"
+        aria-label="Ajouter un cadeau"
+      >
+        +
+      </button>
+
+      <div
+        className={`md:hidden fixed inset-0 z-40 transition-opacity duration-300 ${
+          isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="absolute inset-0 bg-black/40" onClick={() => setIsDrawerOpen(false)} />
+        <div
+          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 pt-4 pb-8 transition-transform duration-300 ${
+            isDrawerOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-teal">Ajouter une idée</h3>
+            <button
+              onClick={() => setIsDrawerOpen(false)}
+              className="text-sage text-xl leading-none hover:text-dark-sage transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <AddGiftForm forUserId={userId!} onSuccess={() => setIsDrawerOpen(false)} />
+        </div>
+      </div>
     </div>
   );
 }

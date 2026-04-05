@@ -4,9 +4,10 @@ import apiClient from '../../api/client';
 
 interface Props {
   forUserId: string;
+  onSuccess?: () => void;
 }
 
-export default function AddGiftForm({ forUserId }: Props) {
+export default function AddGiftForm({ forUserId, onSuccess }: Props) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -26,6 +27,7 @@ export default function AddGiftForm({ forUserId }: Props) {
       setDescription('');
       setUrl('');
       setPrice('');
+      onSuccess?.();
     },
   });
 
