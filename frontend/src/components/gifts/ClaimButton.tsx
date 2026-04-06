@@ -27,9 +27,9 @@ export default function ClaimButton({ gift, forUserId }: Props) {
       <button
         onClick={() => unclaimMutation.mutate()}
         disabled={unclaimMutation.isPending}
-        className="text-sm bg-sand px-3 py-1 rounded-lg hover:bg-sand/70 transition-colors"
+        className="w-full text-sm bg-sand py-2 rounded-lg hover:bg-sand/70 transition-colors font-medium"
       >
-        Annuler réservation
+        Annuler ma réservation
       </button>
     );
   }
@@ -39,16 +39,10 @@ export default function ClaimButton({ gift, forUserId }: Props) {
       <button
         onClick={() => claimMutation.mutate()}
         disabled={claimMutation.isPending}
-        className="text-sm bg-sage text-white px-3 py-1 rounded-lg hover:bg-dark-sage transition-colors"
+        className="w-full text-sm bg-sage text-white py-2 rounded-lg hover:bg-dark-sage transition-colors font-medium"
       >
-        Réserver
+        Réserver ce cadeau
       </button>
-    );
-  }
-
-  if (gift.claimedByUserId) {
-    return (
-      <span className="text-sm text-dark-sage italic">Déjà réservé</span>
     );
   }
 

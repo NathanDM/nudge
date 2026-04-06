@@ -9,6 +9,22 @@ interface Props {
   isOwnList: boolean;
 }
 
+function TrashIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+    </svg>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+    </svg>
+  );
+}
+
 export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
   const queryClient = useQueryClient();
 
@@ -22,45 +38,66 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
     ? `${(gift.price / 100).toFixed(2)} €`
     : null;
 
+  const claimedByOther = !!gift.claimedByUserId && !gift.canUnclaim;
+
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium">{gift.title}</h3>
-          {gift.description && (
-            <p className="text-sm text-dark-sage mt-1">{gift.description}</p>
-          )}
-          <div className="flex flex-wrap gap-3 mt-2">
+    <div className={`bg-white rounded-xl shadow-sm overflow-hidden transition-opacity ${claimedByOther ? 'opacity-55' : ''}`}>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-semibold leading-snug">{gift.title}</h3>
+          <div className="flex items-center gap-2 shrink-0">
             {priceDisplay && (
-              <span className="text-sm text-sage font-medium">
+              <span className="text-xs font-semibold bg-sand px-2.5 py-1 rounded-full">
                 {priceDisplay}
               </span>
             )}
-            {gift.url && (
-              <a
-                href={gift.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-sage underline hover:text-dark-sage"
+            {gift.canUnclaim && (
+              <span className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                Réservé par moi
+              </span>
+            )}
+            {claimedByOther && (
+              <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                Réservé
+              </span>
+            )}
+            {gift.canDelete && (
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="text-gray-300 hover:text-red-400 transition-colors p-0.5"
+                aria-label="Supprimer"
               >
-                Voir le lien
-              </a>
+                <TrashIcon />
+              </button>
             )}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2 shrink-0">
-          {!isOwnList && <ClaimButton gift={gift} forUserId={forUserId} />}
-          {gift.canDelete && (
-            <button
-              onClick={() => deleteMutation.mutate()}
-              disabled={deleteMutation.isPending}
-              className="text-sm text-red-500 hover:text-red-700 transition-colors"
+
+        {gift.description && (
+          <p className="text-sm text-gray-400 leading-relaxed mb-3">{gift.description}</p>
+        )}
+
+        {gift.url && (
+          <div className="mt-2">
+            <a
+              href={gift.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-sage hover:text-dark-sage flex items-center gap-1 transition-colors w-fit"
             >
-              Supprimer
-            </button>
-          )}
-        </div>
+              <ExternalLinkIcon />
+              Voir l'article
+            </a>
+          </div>
+        )}
       </div>
+
+      {!isOwnList && !claimedByOther && (
+        <div className="px-4 pb-4">
+          <ClaimButton gift={gift} forUserId={forUserId} />
+        </div>
+      )}
     </div>
   );
 }
