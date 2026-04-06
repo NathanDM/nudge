@@ -27,7 +27,7 @@ export default function ClaimButton({ gift, forUserId }: Props) {
       <button
         onClick={() => unclaimMutation.mutate()}
         disabled={unclaimMutation.isPending}
-        className="text-sm bg-sand text-teal px-3 py-1 rounded-lg hover:bg-sand/70 transition-colors"
+        className="text-sm bg-sand px-3 py-1 rounded-lg hover:bg-sand/70 transition-colors"
       >
         Annuler réservation
       </button>

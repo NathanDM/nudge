@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "WebFetch(domain:tanstack.com)"
- ]
+      "WebFetch(domain:tanstack.com)",
+      "Bash(cd:*)"
+    ]
   }
 }

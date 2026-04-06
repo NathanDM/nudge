@@ -69,7 +69,7 @@ function AvatarCard({ member }: { member: User }) {
       >
         {getInitials(member.name)}
       </div>
-      <span className="text-xs font-medium text-teal text-center leading-tight max-w-[72px] truncate">
+      <span className="text-xs font-medium text-center leading-tight max-w-[72px] truncate">
         {isMe ? 'Moi' : member.name.split(' ')[0]}
       </span>
     </button>
@@ -105,7 +105,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-teal mb-6">Listes de cadeaux</h1>
+      <h1 className="text-2xl font-bold mb-6">Listes de cadeaux</h1>
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
         {members.map((m) => (
           <AvatarCard key={m.id} member={m} />

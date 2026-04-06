@@ -26,7 +26,7 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
     <div className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-teal">{gift.title}</h3>
+          <h3 className="font-medium">{gift.title}</h3>
           {gift.description && (
             <p className="text-sm text-dark-sage mt-1">{gift.description}</p>
           )}

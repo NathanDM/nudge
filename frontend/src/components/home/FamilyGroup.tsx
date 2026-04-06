@@ -18,7 +18,7 @@ export default function FamilyGroup({ family }: Props) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold text-teal mb-3">
+      <h2 className="text-lg font-semibold mb-3">
         Famille {family.name}
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

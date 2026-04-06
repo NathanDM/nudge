@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-sand">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-teal mb-6 text-center">
+        <h1 className="text-2xl font-bold mb-6 text-center">
           Nudge
         </h1>
         <p className="text-dark-sage text-center mb-6">
@@ -45,7 +45,7 @@ export default function LoginPage() {
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-teal mb-1">
+            <label className="block text-sm font-medium mb-1">
               Qui êtes-vous ?
             </label>
             <select
@@ -63,7 +63,7 @@ export default function LoginPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-teal mb-1">
+            <label className="block text-sm font-medium mb-1">
               PIN
             </label>
             <input

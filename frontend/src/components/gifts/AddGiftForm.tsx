@@ -44,10 +44,8 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl p-4 shadow-sm mb-6"
+      className="space-y-3"
     >
-      <h3 className="font-medium text-teal mb-3">Ajouter une idée</h3>
-      <div className="space-y-3">
         <input
           type="text"
           placeholder="Titre *"
@@ -88,7 +86,6 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
         >
           {mutation.isPending ? 'Ajout...' : 'Ajouter'}
         </button>
-      </div>
     </form>
   );
 }

@@ -17,7 +17,7 @@ export default function MemberCard({ member }: Props) {
       className={`w-full text-left rounded-xl p-4 transition-all hover:shadow-md ${
         isMe
           ? 'bg-sage text-white ring-2 ring-dark-sage'
-          : 'bg-white text-teal hover:bg-white/80'
+          : 'bg-white hover:bg-white/80'
       }`}
     >
       <span className="font-medium">

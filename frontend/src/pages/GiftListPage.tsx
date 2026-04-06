@@ -32,15 +32,19 @@ export default function GiftListPage() {
 
   return (
     <div>
-      <button
-        onClick={() => navigate('/')}
-        className="text-sage hover:text-dark-sage mb-4 text-sm transition-colors"
-      >
-        &larr; Retour
-      </button>
-      <h1 className="text-2xl font-bold text-teal mb-6">{listTitle}</h1>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => navigate('/')}
+          className="hover:opacity-70 transition-opacity"
+          aria-label="Retour"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h1 className="text-2xl font-bold">{listTitle}</h1>
+      </div>
 
-      <div className="hidden md:block">
+      <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm mb-6">
+        <h3 className="font-medium mb-3">Ajouter une idée</h3>
         <AddGiftForm forUserId={userId!} />
       </div>
 
@@ -70,7 +74,7 @@ export default function GiftListPage() {
           }`}
         >
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-teal">Ajouter une idée</h3>
+            <h3 className="font-semibold">Ajouter une idée</h3>
             <button
               onClick={() => setIsDrawerOpen(false)}
               className="text-sage text-xl leading-none hover:text-dark-sage transition-colors"
