@@ -1,5 +1,11 @@
 export class LoginDto {
-  userId: string;
+  phone: string;
+  pin: string;
+}
+
+export class RegisterDto {
+  name: string;
+  phone: string;
   pin: string;
 }
 

@@ -1,9 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { GiftIdeaRepository } from '../../domain/gift/gift-idea.repository';
+import { GiftIdeaRepository, GiftWithAuthor } from '../../domain/gift/gift-idea.repository';
 import { GiftIdea } from '../../domain/gift/gift-idea.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
-import { giftIdeas } from '../database/schema';
+import { giftIdeas, users } from '../database/schema';
 
 @Injectable()
 export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
@@ -24,13 +24,16 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
     );
   }
 
-  async findByForUserId(forUserId: string): Promise<GiftIdea[]> {
+  async findByForUserId(forUserId: string): Promise<GiftWithAuthor[]> {
     const rows = await this.db
-      .select()
+      .select({ gift: giftIdeas, addedByName: users.name })
       .from(giftIdeas)
+      .innerJoin(users, eq(giftIdeas.addedByUserId, users.id))
       .where(eq(giftIdeas.forUserId, forUserId))
       .orderBy(giftIdeas.createdAt);
-    return rows.map(this.toEntity);
+    return rows.map(({ gift, addedByName }) =>
+      Object.assign(this.toEntity(gift), { addedByName }),
+    );
   }
 
   async findById(id: string): Promise<GiftIdea | null> {

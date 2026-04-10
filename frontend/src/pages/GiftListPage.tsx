@@ -56,7 +56,7 @@ export default function GiftListPage() {
 
       <button
         onClick={() => setIsDrawerOpen(true)}
-        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-sage text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light hover:bg-dark-sage transition-colors z-30"
+        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-teal text-white rounded-full shadow-lg flex items-center justify-center text-3xl font-light hover:bg-dark-sage transition-colors z-30"
         aria-label="Ajouter un cadeau"
       >
         +

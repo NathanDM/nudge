@@ -29,25 +29,27 @@ async function seed() {
     .values({ name: 'Trehout' })
     .returning();
 
+  const phone = (n: number) => `06${String(n).padStart(8, '0')}`;
+
   // Create users - Damie family
   const damieMembers = ['Philou', 'Daniel', 'Perrine', 'Elia', 'Gabin'];
   const damieUsers = await db
     .insert(users)
-    .values(damieMembers.map((name) => ({ name, pin: '1234' })))
+    .values(damieMembers.map((name, i) => ({ name, phone: phone(i + 1), pin: '1234' })))
     .returning();
 
   // Create users - Trehout family
   const trehoutMembers = ['Herve', 'Lydia', 'Maxime', 'Aurore', 'Edouard'];
   const trehoutUsers = await db
     .insert(users)
-    .values(trehoutMembers.map((name) => ({ name, pin: '1234' })))
+    .values(trehoutMembers.map((name, i) => ({ name, phone: phone(i + 6), pin: '1234' })))
     .returning();
 
   // Create users - Common (both families)
   const commonMembers = ['Paul', 'Jeanne', 'Arthur', 'Nathan', 'Aline'];
   const commonUsers = await db
     .insert(users)
-    .values(commonMembers.map((name) => ({ name, pin: '1234' })))
+    .values(commonMembers.map((name, i) => ({ name, phone: phone(i + 11), pin: '1234' })))
     .returning();
 
   // Assign users to families

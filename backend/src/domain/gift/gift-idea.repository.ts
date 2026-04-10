@@ -1,7 +1,9 @@
 import { GiftIdea } from './gift-idea.entity';
 
+export type GiftWithAuthor = GiftIdea & { addedByName: string };
+
 export interface GiftIdeaRepository {
-  findByForUserId(forUserId: string): Promise<GiftIdea[]>;
+  findByForUserId(forUserId: string): Promise<GiftWithAuthor[]>;
   findById(id: string): Promise<GiftIdea | null>;
   create(data: {
     forUserId: string;

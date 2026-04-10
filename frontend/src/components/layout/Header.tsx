@@ -1,18 +1,14 @@
-import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import Logo from './Logo';
 
 export default function Header() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
 
   return (
     <header className="bg-teal text-white px-6 py-4 flex items-center justify-between">
-      <h1
-        className="text-xl font-bold cursor-pointer"
-        onClick={() => navigate('/')}
-      >
-        Nudge
-      </h1>
+      <button onClick={() => navigate('/')} className="cursor-pointer">
+        <Logo size={48} className="text-2xl text-white font-bold" />
+      </button>
       <button
         onClick={() => navigate('/profile')}
         className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center"

@@ -1,30 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
-import { Family, User } from '../types';
+import { User } from '../types';
 import { useAuth } from '../hooks/useAuth';
 
 const PALETTE = [
-  '#FFF8E1', // Soft Cream
-  '#FFD2B3', // Peach Blush
-  '#F5CD69', // Soft Goldenrod
-  '#A7D49B', // Spring Leaf
-  '#A8D8AA', // Mint Mist
-  '#66B1B0', // Ocean Teal
-  '#C4B7E8', // Lavender Mist
-  '#A87A86', // Dusty Rosewood
-  '#98CBE9', // Sky Blue
-  '#9FAED9', // Powder Blue
-  '#E892A7', // Rose Petal
-  '#F88C85', // Soft Coral
-  '#DFA28A', // Light Terracotta
-  '#B88A66', // Golden Sand
-  '#85A68B', // Sage Green
-  '#8FA6A3', // Misty Blue-Grey
-  '#E3D4F3', // Pale Lilac
-  '#FDF188', // Soft Butter Yellow
-  '#F7C3CF', // Blossom Pink
-  '#FDFDFD', // Cloud White
+  '#FFF8E1', '#FFD2B3', '#F5CD69', '#A7D49B', '#A8D8AA',
+  '#66B1B0', '#C4B7E8', '#A87A86', '#98CBE9', '#9FAED9',
+  '#E892A7', '#F88C85', '#DFA28A', '#B88A66', '#85A68B',
+  '#8FA6A3', '#E3D4F3', '#FDF188', '#F7C3CF', '#FDFDFD',
 ];
 
 function colorForId(id: string) {
@@ -41,12 +26,7 @@ function textColorFor(hex: string) {
 }
 
 function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
 function AvatarCard({ member }: { member: User }) {
@@ -57,10 +37,7 @@ function AvatarCard({ member }: { member: User }) {
   const textColor = textColorFor(color);
 
   return (
-    <button
-      onClick={() => navigate(`/user/${member.id}`)}
-      className="flex flex-col items-center gap-2 group"
-    >
+    <button onClick={() => navigate(`/user/${member.id}`)} className="flex flex-col items-center gap-2 group">
       <div
         style={{ backgroundColor: color, color: textColor }}
         className={`w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold transition-all group-hover:scale-105 ${
@@ -76,28 +53,70 @@ function AvatarCard({ member }: { member: User }) {
   );
 }
 
+function AddContactForm({ onClose }: { onClose: () => void }) {
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (phone: string) => apiClient.post('/users/contacts', { phone }).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      onClose();
+    },
+    onError: () => setError('Numéro introuvable'),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    mutate(phone);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 items-start">
+      <div className="flex flex-col gap-1 flex-1">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Numéro de téléphone"
+          autoFocus
+          className="border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+          required
+        />
+        {error && <span className="text-red-500 text-xs">{error}</span>}
+      </div>
+      <button
+        type="submit"
+        disabled={!phone || isPending}
+        className="bg-sage text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-dark-sage transition-colors disabled:opacity-50"
+      >
+        Ajouter
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className="text-sage hover:text-dark-sage px-2 py-2 text-sm transition-colors"
+      >
+        ✕
+      </button>
+    </form>
+  );
+}
+
 export default function HomePage() {
   const { user } = useAuth();
-  const { data: families, isLoading } = useQuery<Family[]>({
-    queryKey: ['families'],
-    queryFn: () => apiClient.get('/families').then((r) => r.data),
+  const [showAddContact, setShowAddContact] = useState(false);
+  const { data: users, isLoading } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: () => apiClient.get('/users').then((r) => r.data),
   });
 
   if (isLoading)
     return <div className="text-center text-dark-sage py-12">Chargement...</div>;
 
-  const seen = new Set<string>();
-  const members: User[] = [];
-  for (const family of families ?? []) {
-    for (const m of family.members) {
-      if (!seen.has(m.id)) {
-        seen.add(m.id);
-        members.push(m);
-      }
-    }
-  }
-
-  members.sort((a, b) => {
+  const sorted = [...(users ?? [])].sort((a, b) => {
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
     return a.name.localeCompare(b.name);
@@ -106,10 +125,28 @@ export default function HomePage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Listes de cadeaux</h1>
+
+      {showAddContact && (
+        <div className="mb-6">
+          <AddContactForm onClose={() => setShowAddContact(false)} />
+        </div>
+      )}
+
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-        {members.map((m) => (
+        {sorted.map((m) => (
           <AvatarCard key={m.id} member={m} />
         ))}
+        <button
+          onClick={() => setShowAddContact(true)}
+          className="flex flex-col items-center gap-2 group"
+        >
+          <div className="w-16 h-16 rounded-full border-2 border-dashed border-sage/40 flex items-center justify-center text-2xl text-sage/50 transition-all group-hover:border-sage group-hover:text-sage group-hover:scale-105">
+            +
+          </div>
+          <span className="text-xs font-medium text-sage/50 group-hover:text-sage transition-colors">
+            Ajouter
+          </span>
+        </button>
       </div>
     </div>
   );

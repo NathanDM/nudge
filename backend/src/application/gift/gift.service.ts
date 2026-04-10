@@ -25,13 +25,13 @@ export class GiftService {
     const gifts = await this.giftRepo.findByForUserId(forUserId);
 
     if (viewerId === forUserId) {
-      // Own list: only show ideas added by the viewer, no claim info
       return gifts
         .filter((g) => g.addedByUserId === viewerId)
         .map((g) => ({
           id: g.id,
           forUserId: g.forUserId,
           addedByUserId: g.addedByUserId,
+          addedByName: g.addedByName,
           title: g.title,
           description: g.description,
           url: g.url,
@@ -41,11 +41,11 @@ export class GiftService {
         }));
     }
 
-    // Other user's list: show all ideas with claim info
     return gifts.map((g) => ({
       id: g.id,
       forUserId: g.forUserId,
       addedByUserId: g.addedByUserId,
+      addedByName: g.addedByName,
       title: g.title,
       description: g.description,
       url: g.url,

@@ -2,6 +2,7 @@ export class GiftResponseDto {
   id: string;
   forUserId: string;
   addedByUserId: string;
+  addedByName: string;
   title: string;
   description: string | null;
   url: string | null;

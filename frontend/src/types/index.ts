@@ -3,16 +3,11 @@ export interface User {
   name: string;
 }
 
-export interface Family {
-  id: string;
-  name: string;
-  members: User[];
-}
-
 export interface Gift {
   id: string;
   forUserId: string;
   addedByUserId: string;
+  addedByName: string;
   title: string;
   description: string | null;
   url: string | null;
