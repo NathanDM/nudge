@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS "user_families" (
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(100) NOT NULL,
-	"pin" varchar(10) DEFAULT '1234' NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"phone" varchar(20) NOT NULL,
+	"pin" varchar(4) NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "users_phone_unique" UNIQUE("phone")
 );
 --> statement-breakpoint
 DO $$ BEGIN
