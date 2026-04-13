@@ -8,6 +8,13 @@
       "when": 1769547835401,
       "tag": "0000_oval_talos",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776081946718,
+      "tag": "0001_powerful_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }
