@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import apiClient from '../api/client';
 import { User } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import { AppShellContext } from '../components/layout/AppShell';
 
 const PALETTE = [
   '#FFF8E1', '#FFD2B3', '#F5CD69', '#A7D49B', '#A8D8AA',
@@ -94,24 +95,27 @@ function AddContactForm({ onClose }: { onClose: () => void }) {
       >
         Ajouter
       </button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="text-sage hover:text-dark-sage px-2 py-2 text-sm transition-colors"
-      >
-        ✕
-      </button>
     </form>
   );
 }
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [showAddContact, setShowAddContact] = useState(false);
+
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['users'],
     queryFn: () => apiClient.get('/users').then((r) => r.data),
   });
+
+  useEffect(() => {
+    setPlusHandler(() => () => setShowAddContact(true));
+    setCloseHandler(() => () => setShowAddContact(false));
+    return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
+  }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => { notifyDrawerOpen(showAddContact); }, [showAddContact, notifyDrawerOpen]);
 
   if (isLoading)
     return <div className="text-center text-dark-sage py-12">Chargement...</div>;
@@ -126,27 +130,31 @@ export default function HomePage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Listes de cadeaux</h1>
 
-      {showAddContact && (
-        <div className="mb-6">
-          <AddContactForm onClose={() => setShowAddContact(false)} />
-        </div>
-      )}
-
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
         {sorted.map((m) => (
           <AvatarCard key={m.id} member={m} />
         ))}
-        <button
-          onClick={() => setShowAddContact(true)}
-          className="flex flex-col items-center gap-2 group"
+      </div>
+
+      <div
+        className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+          showAddContact ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddContact(false)} />
+        <div
+          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 pt-4 pb-24 transition-transform duration-300 ${
+            showAddContact ? 'translate-y-0' : 'translate-y-full'
+          }`}
         >
-          <div className="w-16 h-16 rounded-full border-2 border-dashed border-sage/40 flex items-center justify-center text-2xl text-sage/50 transition-all group-hover:border-sage group-hover:text-sage group-hover:scale-105">
-            +
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold">Ajouter un ami</h3>
+            <button onClick={() => setShowAddContact(false)} className="text-sage text-xl leading-none hover:text-dark-sage transition-colors">
+              ✕
+            </button>
           </div>
-          <span className="text-xs font-medium text-sage/50 group-hover:text-sage transition-colors">
-            Ajouter
-          </span>
-        </button>
+          <AddContactForm onClose={() => setShowAddContact(false)} />
+        </div>
       </div>
     </div>
   );
