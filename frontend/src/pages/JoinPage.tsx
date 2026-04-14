@@ -44,7 +44,7 @@ export default function JoinPage() {
       <div className="p-4 w-full max-w-sm mx-4 text-center">
         <div className="flex items-center justify-center gap-3 mb-8">
           <Logo size={52} hideText />
-          <span className="text-4xl font-bold text-dark-sage">Nudge</span>
+          <span className="text-4xl font-bold text-sage">Nudge</span>
           <div className="w-[52px]" />
         </div>
 
@@ -62,20 +62,20 @@ export default function JoinPage() {
               {inviterName} t'invite sur Nudge
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              Rejoins-le pour partager vos listes de cadeaux.
+              Rejoins {inviterName} pour partager vos listes de cadeaux.
             </p>
             {isAuthenticated ? (
               <button
                 onClick={handleAccept}
                 disabled={state === 'accepting'}
-                className="w-full bg-dark-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-dark-sage transition-colors disabled:opacity-50"
+                className="w-full bg-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-active transition-colors disabled:opacity-50"
               >
                 {state === 'accepting' ? 'Rejoindre...' : 'Rejoindre'}
               </button>
             ) : (
               <button
                 onClick={handleLogin}
-                className="w-full bg-dark-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-dark-sage transition-colors"
+                className="w-full bg-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-active transition-colors"
               >
                 Se connecter pour rejoindre
               </button>

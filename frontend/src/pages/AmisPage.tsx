@@ -35,7 +35,7 @@ function AddFriendForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Numéro de téléphone"
           autoFocus
-          className="border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+          className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           required
         />
         {error && <span className="text-red-500 text-xs">{error}</span>}
@@ -43,7 +43,7 @@ function AddFriendForm({ onClose }: { onClose: () => void }) {
       <button
         type="submit"
         disabled={!phone || isPending}
-        className="bg-sage text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-dark-sage transition-colors disabled:opacity-50"
+        className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50"
       >
         Ajouter
       </button>
@@ -55,7 +55,7 @@ export default function AmisPage() {
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [showAddFriend, setShowAddFriend] = useState(false);
 
-  const { data: friends = [], isLoading } = useQuery<User[]>({
+  const { data: friends = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ['friends'],
     queryFn: () => apiClient.get('/users/friends').then((r) => r.data),
   });
@@ -69,20 +69,37 @@ export default function AmisPage() {
   useEffect(() => { notifyDrawerOpen(showAddFriend); }, [showAddFriend, notifyDrawerOpen]);
 
   if (isLoading)
-    return <div className="text-center text-dark-sage py-12">Chargement...</div>;
+    return <div className="text-center text-sage py-12">Chargement...</div>;
+
+  if (isError)
+    return <div className="text-center text-red-400 py-12">Impossible de charger les amis. Réessayez.</div>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Amis</h1>
 
-      {friends.length === 0
-        ? <p className="text-sm text-gray-400 italic">Aucun ami — utilisez le + pour en ajouter</p>
-        : (
-          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-            {friends.map((m) => <AvatarCard key={m.id} member={m} />)}
-          </div>
-        )
-      }
+      <section>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Mes amis</h2>
+        {friends.length === 0
+          ? (
+            <div className="text-center py-10">
+              <p className="text-base font-medium text-gray-700 mb-1">Pas encore d'ami ici.</p>
+              <p className="text-sm text-gray-500 mb-4">Trouve quelqu'un à inviter.</p>
+              <button
+                onClick={() => setShowAddFriend(true)}
+                className="bg-sage text-white rounded-2xl px-6 py-3 text-sm font-semibold hover:bg-active transition-colors"
+              >
+                Ajouter un ami
+              </button>
+            </div>
+          )
+          : (
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
+              {friends.map((m) => <AvatarCard key={m.id} member={m} />)}
+            </div>
+          )
+        }
+      </section>
 
       <div
         className={`fixed inset-0 z-40 transition-opacity duration-300 ${
@@ -97,7 +114,7 @@ export default function AmisPage() {
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Ajouter un ami</h3>
-            <button onClick={() => setShowAddFriend(false)} className="text-sage text-xl leading-none hover:text-dark-sage transition-colors">✕</button>
+            <button onClick={() => setShowAddFriend(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
           </div>
           <AddFriendForm onClose={() => setShowAddFriend(false)} />
         </div>

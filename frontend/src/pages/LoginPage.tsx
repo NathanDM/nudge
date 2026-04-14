@@ -76,24 +76,24 @@ export default function LoginPage() {
       <div className="p-4 w-full max-w-sm mx-4">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Logo size={52} hideText />
-          <span className="text-4xl font-bold text-dark-sage">Nudge</span>
+          <span className="text-4xl font-bold text-sage">Nudge</span>
           <div className="w-[52px]" />
         </div>
-        <p className="text-sm text-dark-sage border-l-2 border-dark-sage pl-3 py-1 mb-6">
+        <p className="text-sm text-gray-600 border-l-2 border-sage pl-3 py-1 mb-6">
           Créez votre compte pour gérer vos listes de cadeaux avec vos proches.
         </p>
         <div className="flex bg-gray-100 rounded-xl p-1 mb-8">
           <button
             type="button"
             onClick={() => switchMode('register')}
-            className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${mode === 'register' ? 'bg-dark-sage text-white' : 'bg-transparent text-gray-400'}`}
+            className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${mode === 'register' ? 'bg-sage text-white' : 'bg-transparent text-gray-400'}`}
           >
             Créer un compte
           </button>
           <button
             type="button"
             onClick={() => switchMode('login')}
-            className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${mode === 'login' ? 'bg-dark-sage text-white' : 'bg-transparent text-gray-400'}`}
+            className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${mode === 'login' ? 'bg-sage text-white' : 'bg-transparent text-gray-400'}`}
           >
             Connexion
           </button>
@@ -108,7 +108,7 @@ export default function LoginPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Votre prénom"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage bg-white"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blush bg-white"
                 required
               />
             </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+33 6 12 34 56 78"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blush bg-white"
               required
             />
           </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
               onChange={(e) => setPin(e.target.value)}
               maxLength={4}
               placeholder="····"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-sage bg-white"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blush bg-white"
               required
             />
           </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={!isValid || loading}
-            className="w-full bg-dark-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-dark-sage transition-colors disabled:opacity-50 mt-2"
+            className="w-full bg-sage text-white rounded-2xl py-3.5 font-semibold hover:bg-active transition-colors disabled:opacity-50 mt-2"
           >
             {loading && <Spinner />}
             {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}

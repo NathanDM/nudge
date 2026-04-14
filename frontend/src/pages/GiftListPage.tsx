@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useOutletContext } from 'react-router-dom';
+import { useParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { Gift, User } from '../types';
@@ -11,6 +11,7 @@ import { AppShellContext } from '../components/layout/AppShell';
 export default function GiftListPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const isOwnList = user?.id === userId;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -39,6 +40,11 @@ export default function GiftListPage() {
 
   return (
     <div>
+      {!isOwnList && (
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 -mt-2">
+          ← Retour
+        </button>
+      )}
       <h1 className="text-2xl font-bold mb-6">{listTitle}</h1>
 
       <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm mb-6">
@@ -47,7 +53,7 @@ export default function GiftListPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center text-dark-sage py-8">Chargement...</div>
+        <div className="text-center text-sage py-8">Chargement...</div>
       ) : (
         <GiftList gifts={gifts ?? []} forUserId={userId!} isOwnList={isOwnList} />
       )}
@@ -65,9 +71,7 @@ export default function GiftListPage() {
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Ajouter une idée</h3>
-            <button onClick={() => setIsDrawerOpen(false)} className="text-sage text-xl leading-none hover:text-dark-sage transition-colors">
-              ✕
-            </button>
+            <button onClick={() => setIsDrawerOpen(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
           </div>
           <AddGiftForm forUserId={userId!} onSuccess={() => setIsDrawerOpen(false)} />
         </div>
