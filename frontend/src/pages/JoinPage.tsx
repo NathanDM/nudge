@@ -34,7 +34,8 @@ export default function JoinPage() {
   };
 
   const handleLogin = () => {
-    sessionStorage.setItem('joinToken', token!);
+    if (!token) return;
+    sessionStorage.setItem('joinToken', token);
     navigate('/login');
   };
 
