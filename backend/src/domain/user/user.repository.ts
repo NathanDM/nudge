@@ -5,7 +5,12 @@ export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByPhone(lastEightDigits: string): Promise<User | null>;
   create(name: string, phone: string, pin: string): Promise<User>;
+  createChild(name: string, parentId: string): Promise<User>;
+  deleteChild(childId: string, userId: string): Promise<void>;
   findContacts(userId: string): Promise<User[]>;
+  findFamilyContacts(userId: string): Promise<User[]>;
+  findFriendContacts(userId: string): Promise<User[]>;
+  updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<void>;
   addContact(userId: string, contactId: string): Promise<void>;
 }
 

@@ -17,7 +17,8 @@ export class AuthService {
   async login(phone: string, pin: string): Promise<LoginResponseDto> {
     const lastEight = phone.replace(/\D/g, '').slice(-8);
     const user = await this.userRepo.findByPhone(lastEight);
-    const pinMatches = user ? await bcrypt.compare(pin, user.pin) : false;
+    if (user?.managedBy) throw new UnauthorizedException('Invalid credentials');
+    const pinMatches = user ? await bcrypt.compare(pin, user.pin!) : false;
     if (!user || !pinMatches) throw new UnauthorizedException('Invalid credentials');
     const payload = { sub: user.id, name: user.name };
     const accessToken = this.jwtService.sign(payload);

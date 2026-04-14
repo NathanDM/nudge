@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   name: string;
+  managedBy?: string | null;
 }
 
 export interface Gift {

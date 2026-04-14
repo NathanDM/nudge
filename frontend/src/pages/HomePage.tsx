@@ -34,6 +34,7 @@ function AvatarCard({ member }: { member: User }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMe = user?.id === member.id;
+  const isChild = !!member.managedBy;
   const color = colorForId(member.id);
   const textColor = textColorFor(color);
 
@@ -43,7 +44,7 @@ function AvatarCard({ member }: { member: User }) {
         style={{ backgroundColor: color, color: textColor }}
         className={`w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold transition-all group-hover:scale-105 ${
           isMe ? 'ring-2 ring-offset-2 ring-dark-sage' : 'shadow-sm group-hover:shadow-md'
-        }`}
+        } ${isChild ? 'ring-1 ring-offset-1 ring-sage/50' : ''}`}
       >
         {getInitials(member.name)}
       </div>
@@ -54,7 +55,7 @@ function AvatarCard({ member }: { member: User }) {
   );
 }
 
-function AddContactForm({ onClose }: { onClose: () => void }) {
+function AddFriendForm({ onClose }: { onClose: () => void }) {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
@@ -62,7 +63,7 @@ function AddContactForm({ onClose }: { onClose: () => void }) {
   const { mutate, isPending } = useMutation({
     mutationFn: (phone: string) => apiClient.post('/users/contacts', { phone }).then((r) => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
       onClose();
     },
     onError: () => setError('Numéro introuvable'),
@@ -99,61 +100,84 @@ function AddContactForm({ onClose }: { onClose: () => void }) {
   );
 }
 
+function Section({ title, members, emptyLabel }: { title: string; members: User[]; emptyLabel: string }) {
+  return (
+    <section className="mb-8">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">{title}</h2>
+      {members.length === 0
+        ? <p className="text-sm text-gray-400 italic">{emptyLabel}</p>
+        : (
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
+            {members.map((m) => <AvatarCard key={m.id} member={m} />)}
+          </div>
+        )
+      }
+    </section>
+  );
+}
+
 export default function HomePage() {
   const { user } = useAuth();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
-  const [showAddContact, setShowAddContact] = useState(false);
+  const [showAddFriend, setShowAddFriend] = useState(false);
 
-  const { data: users, isLoading } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: () => apiClient.get('/users').then((r) => r.data),
+  const { data: family = [], isLoading: loadingFamily } = useQuery<User[]>({
+    queryKey: ['family'],
+    queryFn: () => apiClient.get('/users/family').then((r) => r.data),
+  });
+
+  const { data: friends = [], isLoading: loadingFriends } = useQuery<User[]>({
+    queryKey: ['friends'],
+    queryFn: () => apiClient.get('/users/friends').then((r) => r.data),
   });
 
   useEffect(() => {
-    setPlusHandler(() => () => setShowAddContact(true));
-    setCloseHandler(() => () => setShowAddContact(false));
+    setPlusHandler(() => () => setShowAddFriend(true));
+    setCloseHandler(() => () => setShowAddFriend(false));
     return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
 
-  useEffect(() => { notifyDrawerOpen(showAddContact); }, [showAddContact, notifyDrawerOpen]);
+  useEffect(() => { notifyDrawerOpen(showAddFriend); }, [showAddFriend, notifyDrawerOpen]);
 
-  if (isLoading)
+  if (loadingFamily || loadingFriends)
     return <div className="text-center text-dark-sage py-12">Chargement...</div>;
 
-  const sorted = [...(users ?? [])].sort((a, b) => {
-    if (a.id === user?.id) return -1;
-    if (b.id === user?.id) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const selfAsUser: User | null = user ? { id: user.id, name: user.name } : null;
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Listes de cadeaux</h1>
 
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-        {sorted.map((m) => (
-          <AvatarCard key={m.id} member={m} />
-        ))}
-      </div>
+      {selfAsUser && (
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">Moi</h2>
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
+            <AvatarCard member={selfAsUser} />
+          </div>
+        </section>
+      )}
+
+      <Section title="Famille" members={family} emptyLabel="Aucun membre famille — ajoutez via invitation" />
+      <Section title="Amis" members={friends} emptyLabel="Aucun ami — utilisez le + pour en ajouter" />
 
       <div
         className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-          showAddContact ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          showAddFriend ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddContact(false)} />
+        <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddFriend(false)} />
         <div
           className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 pt-4 pb-24 transition-transform duration-300 ${
-            showAddContact ? 'translate-y-0' : 'translate-y-full'
+            showAddFriend ? 'translate-y-0' : 'translate-y-full'
           }`}
         >
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Ajouter un ami</h3>
-            <button onClick={() => setShowAddContact(false)} className="text-sage text-xl leading-none hover:text-dark-sage transition-colors">
+            <button onClick={() => setShowAddFriend(false)} className="text-sage text-xl leading-none hover:text-dark-sage transition-colors">
               ✕
             </button>
           </div>
-          <AddContactForm onClose={() => setShowAddContact(false)} />
+          <AddFriendForm onClose={() => setShowAddFriend(false)} />
         </div>
       </div>
     </div>
