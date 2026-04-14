@@ -73,6 +73,10 @@ export class DrizzleUserRepository implements UserRepository {
     const result = await this.db.execute(sql`
       SELECT u.id, u.name, u.managed_by AS "managedBy"
       FROM users u
+      WHERE u.managed_by = ${userId}
+      UNION
+      SELECT u.id, u.name, u.managed_by AS "managedBy"
+      FROM users u
       INNER JOIN user_contacts uc
         ON uc.contact_id = u.id
         AND uc.user_id = ${userId}
