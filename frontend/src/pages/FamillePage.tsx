@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import apiClient from '../api/client';
 import { User } from '../types';
-import { useAuth } from '../hooks/useAuth';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 
 export default function FamillePage() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
-  const [showInviteInfo, setShowInviteInfo] = useState(false);
 
   const { data: family = [], isLoading } = useQuery<User[]>({
     queryKey: ['family'],
@@ -27,20 +24,9 @@ export default function FamillePage() {
   if (isLoading)
     return <div className="text-center text-dark-sage py-12">Chargement...</div>;
 
-  const selfAsUser: User | null = user ? { id: user.id, name: user.name } : null;
-
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Famille</h1>
-
-      {selfAsUser && (
-        <section className="mb-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">Moi</h2>
-          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-            <AvatarCard member={selfAsUser} />
-          </div>
-        </section>
-      )}
 
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">Ma famille</h2>
