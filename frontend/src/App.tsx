@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
+import FamillePage from './pages/FamillePage';
+import AmisPage from './pages/AmisPage';
 import GiftListPage from './pages/GiftListPage';
 import ProfilePage from './pages/ProfilePage';
+import JoinPage from './pages/JoinPage';
 import AppShell from './components/layout/AppShell';
 
 export default function App() {
@@ -10,8 +12,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/join/:token" element={<JoinPage />} />
         <Route element={<AppShell />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<FamillePage />} />
+          <Route path="/amis" element={<AmisPage />} />
           <Route path="/user/:userId" element={<GiftListPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
