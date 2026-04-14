@@ -11,7 +11,7 @@ export interface UserRepository {
   findChildren(userId: string): Promise<User[]>;
   findFamilyContacts(userId: string): Promise<User[]>;
   findFriendContacts(userId: string): Promise<User[]>;
-  updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<void>;
+  updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<boolean>;
   addContact(userId: string, contactId: string): Promise<void>;
 }
 

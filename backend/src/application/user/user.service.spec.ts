@@ -75,7 +75,7 @@ describe('UserService', () => {
 
   describe('updateContactType', () => {
     it('updates contact type to family', async () => {
-      const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(undefined) });
+      const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(true) });
       const service = new UserService(repo as any);
 
       await service.updateContactType('user-1', 'contact-1', 'family');
@@ -92,7 +92,7 @@ describe('UserService', () => {
     });
 
     it('throws NotFoundException when contact not in caller list', async () => {
-      const repo = makeRepo({ updateContactType: jest.fn().mockRejectedValue(new NotFoundException('Contact introuvable')) });
+      const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(false) });
       const service = new UserService(repo as any);
 
       await expect(service.updateContactType('user-1', 'unknown', 'family')).rejects.toThrow(NotFoundException);

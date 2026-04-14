@@ -118,7 +118,7 @@ export class DrizzleUserRepository implements UserRepository {
     return rows.map(toUser);
   }
 
-  async updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<void> {
+  async updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<boolean> {
     const result = await this.db
       .update(userContacts)
       .set({ contactType })
@@ -127,7 +127,7 @@ export class DrizzleUserRepository implements UserRepository {
         eq(userContacts.contactId, contactId),
       ))
       .returning();
-    if (result.length === 0) throw new NotFoundException('Contact introuvable');
+    return result.length > 0;
   }
 
   async addContact(userId: string, contactId: string): Promise<void> {

@@ -40,7 +40,8 @@ export class UserService {
   async updateContactType(userId: string, contactId: string, contactType: string): Promise<void> {
     if (!VALID_CONTACT_TYPES.includes(contactType as any))
       throw new BadRequestException('contactType must be "family" or "friend"');
-    await this.userRepo.updateContactType(userId, contactId, contactType as 'family' | 'friend');
+    const found = await this.userRepo.updateContactType(userId, contactId, contactType as 'family' | 'friend');
+    if (!found) throw new NotFoundException('Contact introuvable');
   }
 
   async addContactByPhone(userId: string, phone: string): Promise<Omit<User, 'pin'>> {
