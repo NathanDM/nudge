@@ -29,10 +29,9 @@ export default function FamillePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Famille</h1>
+      <h1 className="text-2xl font-bold mb-6">Ma famille</h1>
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Ma famille</h2>
         {family.length === 0
           ? (
             <div className="text-center py-10">

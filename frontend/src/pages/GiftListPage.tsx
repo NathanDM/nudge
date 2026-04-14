@@ -45,8 +45,6 @@ export default function GiftListPage() {
           ← Retour
         </button>
       )}
-      <h1 className="text-2xl font-bold mb-6">{listTitle}</h1>
-
       <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm mb-6">
         <h3 className="font-medium mb-3">Ajouter une idée</h3>
         <AddGiftForm forUserId={userId!} />

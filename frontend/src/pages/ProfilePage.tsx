@@ -135,8 +135,6 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">{user?.name}</h1>
-
       <section className="mb-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Mes enfants</h2>
         {children.length > 0 && (

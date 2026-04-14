@@ -76,10 +76,9 @@ export default function AmisPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Amis</h1>
+      <h1 className="text-2xl font-bold mb-6">Mes amis</h1>
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Mes amis</h2>
         {friends.length === 0
           ? (
             <div className="text-center py-10">
