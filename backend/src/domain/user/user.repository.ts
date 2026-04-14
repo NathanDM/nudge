@@ -8,6 +8,7 @@ export interface UserRepository {
   createChild(name: string, parentId: string): Promise<User>;
   deleteChild(childId: string, userId: string): Promise<void>;
   findContacts(userId: string): Promise<User[]>;
+  findChildren(userId: string): Promise<User[]>;
   findFamilyContacts(userId: string): Promise<User[]>;
   findFriendContacts(userId: string): Promise<User[]>;
   updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<void>;

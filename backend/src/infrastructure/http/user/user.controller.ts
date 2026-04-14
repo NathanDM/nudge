@@ -10,6 +10,11 @@ type AuthRequest = Request & { user: { id: string; name: string } };
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get('children')
+  getChildren(@Req() req: AuthRequest) {
+    return this.userService.getChildren(req.user.id);
+  }
+
   @Get('family')
   getFamilyContacts(@Req() req: AuthRequest) {
     return this.userService.getFamilyContacts(req.user.id);

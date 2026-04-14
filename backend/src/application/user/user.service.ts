@@ -10,6 +10,11 @@ const VALID_CONTACT_TYPES = ['family', 'friend'] as const;
 export class UserService {
   constructor(@Inject(USER_REPOSITORY) private readonly userRepo: UserRepository) {}
 
+  async getChildren(userId: string): Promise<PublicUser[]> {
+    const children = await this.userRepo.findChildren(userId);
+    return children.map(({ id, name, managedBy }) => ({ id, name, managedBy }));
+  }
+
   async getFamilyContacts(userId: string): Promise<PublicUser[]> {
     const contacts = await this.userRepo.findFamilyContacts(userId);
     return contacts.map(({ id, name, managedBy }) => ({ id, name, managedBy }));

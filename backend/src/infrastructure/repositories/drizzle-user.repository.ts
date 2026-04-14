@@ -95,6 +95,15 @@ export class DrizzleUserRepository implements UserRepository {
       .map((r) => new User(r.id, r.name, null, null, r.managedBy, new Date()));
   }
 
+  async findChildren(userId: string): Promise<User[]> {
+    const rows = await this.db
+      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt })
+      .from(users)
+      .where(eq(users.managedBy, userId))
+      .orderBy(users.name);
+    return rows.map(toUser);
+  }
+
   async findFriendContacts(userId: string): Promise<User[]> {
     const rows = await this.db
       .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt })
@@ -103,6 +112,7 @@ export class DrizzleUserRepository implements UserRepository {
       .where(and(
         eq(userContacts.userId, userId),
         eq(userContacts.contactType, 'friend'),
+        sql`${users.id} != ${userId}`,
       ))
       .orderBy(users.name);
     return rows.map(toUser);
