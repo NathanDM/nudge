@@ -1,6 +1,5 @@
-import { Injectable, Inject, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { eq, sql, and } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
 import { UserRepository } from '../../domain/user/user.repository';
 import { User } from '../../domain/user/user.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
@@ -36,12 +35,12 @@ export class DrizzleUserRepository implements UserRepository {
     return toUser(row);
   }
 
-  async createChild(name: string, parentId: string): Promise<User> {
+  async createChild(name: string, parentId: string): Promise<User | null> {
     const [existing] = await this.db
       .select({ id: users.id })
       .from(users)
       .where(and(eq(users.managedBy, parentId), eq(users.name, name)));
-    if (existing) throw new ConflictException('Un enfant avec ce prénom existe déjà');
+    if (existing) return null;
     const [row] = await this.db
       .insert(users)
       .values({ name, phone: null, pin: null, managedBy: parentId })
@@ -49,11 +48,12 @@ export class DrizzleUserRepository implements UserRepository {
     return toUser(row);
   }
 
-  async deleteChild(childId: string, userId: string): Promise<void> {
+  async deleteChild(childId: string, userId: string): Promise<'ok' | 'not_found' | 'forbidden'> {
     const child = await this.findById(childId);
-    if (!child) throw new NotFoundException('Enfant introuvable');
-    if (child.managedBy !== userId) throw new ForbiddenException('Accès refusé');
+    if (!child) return 'not_found';
+    if (child.managedBy !== userId) return 'forbidden';
     await this.db.delete(users).where(eq(users.id, childId));
+    return 'ok';
   }
 
   async findContacts(userId: string): Promise<User[]> {

@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
 import { User } from '../../domain/user/user.entity';
 
@@ -27,11 +27,14 @@ export class UserService {
 
   async createChild(name: string, parentId: string): Promise<PublicUser> {
     const child = await this.userRepo.createChild(name, parentId);
+    if (!child) throw new ConflictException('Un enfant avec ce prénom existe déjà');
     return { id: child.id, name: child.name, managedBy: child.managedBy };
   }
 
   async deleteChild(childId: string, userId: string): Promise<void> {
-    await this.userRepo.deleteChild(childId, userId);
+    const result = await this.userRepo.deleteChild(childId, userId);
+    if (result === 'not_found') throw new NotFoundException('Enfant introuvable');
+    if (result === 'forbidden') throw new ForbiddenException('Accès refusé');
   }
 
   async updateContactType(userId: string, contactId: string, contactType: string): Promise<void> {

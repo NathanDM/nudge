@@ -5,8 +5,8 @@ export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByPhone(lastEightDigits: string): Promise<User | null>;
   create(name: string, phone: string, pin: string): Promise<User>;
-  createChild(name: string, parentId: string): Promise<User>;
-  deleteChild(childId: string, userId: string): Promise<void>;
+  createChild(name: string, parentId: string): Promise<User | null>;
+  deleteChild(childId: string, userId: string): Promise<'ok' | 'not_found' | 'forbidden'>;
   findContacts(userId: string): Promise<User[]>;
   findChildren(userId: string): Promise<User[]>;
   findFamilyContacts(userId: string): Promise<User[]>;

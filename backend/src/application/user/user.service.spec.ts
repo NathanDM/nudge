@@ -40,8 +40,8 @@ describe('UserService', () => {
       expect(repo.createChild).toHaveBeenCalledWith('Luc', 'parent-1');
     });
 
-    it('propagates ConflictException when child name already exists', async () => {
-      const repo = makeRepo({ createChild: jest.fn().mockRejectedValue(new ConflictException('Un enfant avec ce prénom existe déjà')) });
+    it('throws ConflictException when child name already exists', async () => {
+      const repo = makeRepo({ createChild: jest.fn().mockResolvedValue(null) });
       const service = new UserService(repo as any);
 
       await expect(service.createChild('Léa', 'parent-1')).rejects.toThrow(ConflictException);
@@ -50,7 +50,7 @@ describe('UserService', () => {
 
   describe('deleteChild', () => {
     it('deletes a child the parent owns', async () => {
-      const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue(undefined) });
+      const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('ok') });
       const service = new UserService(repo as any);
 
       await service.deleteChild('child-1', 'parent-1');
@@ -59,14 +59,14 @@ describe('UserService', () => {
     });
 
     it('throws ForbiddenException when child belongs to another parent', async () => {
-      const repo = makeRepo({ deleteChild: jest.fn().mockRejectedValue(new ForbiddenException('Accès refusé')) });
+      const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('forbidden') });
       const service = new UserService(repo as any);
 
       await expect(service.deleteChild('child-1', 'wrong-parent')).rejects.toThrow(ForbiddenException);
     });
 
     it('throws NotFoundException when child does not exist', async () => {
-      const repo = makeRepo({ deleteChild: jest.fn().mockRejectedValue(new NotFoundException('Enfant introuvable')) });
+      const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('not_found') });
       const service = new UserService(repo as any);
 
       await expect(service.deleteChild('unknown-id', 'parent-1')).rejects.toThrow(NotFoundException);
