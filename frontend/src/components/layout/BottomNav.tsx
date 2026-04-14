@@ -44,7 +44,7 @@ function ProfileIcon({ active }: { active: boolean }) {
 
 function NavItem({ label, active, onClick, icon }: { label: string; active: boolean; onClick: () => void; icon: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1 w-14 py-2 transition-colors" style={{ color: active ? '#2D8C85' : '#94a3a8' }}>
+    <button onClick={onClick} className={`flex flex-col items-center gap-1 w-14 py-2 transition-colors ${active ? 'text-active' : 'text-gray-400'}`}>
       {icon}
       <span className="text-[10px] font-medium">{label}</span>
     </button>
@@ -68,7 +68,7 @@ export default function BottomNav({ drawerOpen, onPlusClick, onCloseClick }: Pro
         <NavItem label="Amis" active={isAmis} onClick={() => navigate('/amis')} icon={<AmisIcon active={isAmis} />} />
         <button
           onClick={drawerOpen ? onCloseClick : onPlusClick}
-          className="-translate-y-3 w-14 h-14 bg-teal rounded-full flex items-center justify-center shadow-lg hover:bg-dark-sage active:scale-95 transition-all"
+          className="-translate-y-3 w-14 h-14 bg-salmon rounded-full flex items-center justify-center shadow-lg hover:bg-sage active:scale-95 transition-all"
           aria-label={drawerOpen ? 'Fermer' : 'Ajouter'}
         >
           <span className={`text-white font-light leading-none transition-transform duration-200 ${drawerOpen ? 'text-2xl rotate-45' : 'text-3xl'}`}>+</span>

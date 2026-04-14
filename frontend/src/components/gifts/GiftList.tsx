@@ -10,7 +10,7 @@ interface Props {
 export default function GiftList({ gifts, forUserId, isOwnList }: Props) {
   if (gifts.length === 0) {
     return (
-      <div className="text-center text-dark-sage py-8 bg-white/50 rounded-xl">
+      <div className="text-center text-sage py-8 bg-white/50 rounded-xl">
         Aucune idée de cadeau pour le moment.
       </div>
     );

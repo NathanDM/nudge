@@ -16,7 +16,7 @@ export default function MemberCard({ member }: Props) {
       onClick={() => navigate(`/user/${member.id}`)}
       className={`w-full text-left rounded-xl p-4 transition-all hover:shadow-md ${
         isMe
-          ? 'bg-sage text-white ring-2 ring-dark-sage'
+          ? 'bg-blush text-white ring-2 ring-sage'
           : 'bg-white hover:bg-white/80'
       }`}
     >

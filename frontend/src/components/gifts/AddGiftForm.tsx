@@ -52,14 +52,14 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          className="w-full border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+          className="w-full border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
         />
         <input
           type="text"
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+          className="w-full border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
         />
         <div className="flex gap-3">
           <input
@@ -67,7 +67,7 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
             placeholder="Lien (URL)"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+            className="flex-1 border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           />
           <input
             type="number"
@@ -76,13 +76,13 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
             onChange={(e) => setPrice(e.target.value)}
             step="0.01"
             min="0"
-            className="w-28 border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+            className="w-28 border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           />
         </div>
         <button
           type="submit"
           disabled={!title || mutation.isPending}
-          className="bg-sage text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-dark-sage transition-colors disabled:opacity-50"
+          className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50"
         >
           {mutation.isPending ? 'Ajout...' : 'Ajouter'}
         </button>

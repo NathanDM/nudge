@@ -86,7 +86,7 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
             <button
               onClick={(e) => { e.stopPropagation(); claimMutation.mutate(); }}
               disabled={claimMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-teal text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-salmon text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <CalendarIcon />
               Réserver
@@ -96,7 +96,7 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
             <button
               onClick={(e) => { e.stopPropagation(); unclaimMutation.mutate(); }}
               disabled={unclaimMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-sage/20 text-sage rounded-xl py-3 font-medium hover:bg-sage/30 transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-blush/20 text-blush rounded-xl py-3 font-medium hover:bg-blush/30 transition-colors disabled:opacity-50"
             >
               <CalendarIcon />
               Annuler la réservation

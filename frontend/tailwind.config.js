@@ -5,9 +5,10 @@ export default {
     extend: {
       colors: {
         sand: '#FEF8F3',
-        sage: '#EED7CF',
-        'dark-sage': '#A5C8BF',
-        teal: '#E9ACB2',
+        blush: '#EED7CF',
+        sage: '#A5C8BF',
+        active: '#2D8C85',
+        salmon: '#E9ACB2',
       },
     },
   },

@@ -5,7 +5,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-teal text-white px-6 py-4 flex items-center justify-between">
+    <header className="bg-salmon text-white px-6 py-4 flex items-center justify-between">
       <button onClick={() => navigate('/')} className="cursor-pointer">
         <Logo size={48} className="text-2xl text-white font-bold" />
       </button>
