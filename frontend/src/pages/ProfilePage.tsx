@@ -36,13 +36,13 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Prénom de l'enfant"
           autoFocus
-          className="border border-sage/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage"
+          className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           required
         />
         {error && <span className="text-red-500 text-xs">{error}</span>}
       </div>
       <button type="submit" disabled={!name || loading}
-        className="bg-sage text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-dark-sage transition-colors disabled:opacity-50">
+        className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50">
         {loading ? '...' : 'Créer'}
       </button>
       <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2">
@@ -53,25 +53,38 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
 }
 
 function ChildRow({ child }: { child: User }) {
+  const [confirming, setConfirming] = useState(false);
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation({
     mutationFn: () => apiClient.delete(`/users/children/${child.id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
       queryClient.invalidateQueries({ queryKey: ['family'] });
+      setConfirming(false);
     },
   });
 
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
       <span className="text-sm font-medium">{child.name}</span>
-      <button
-        onClick={() => mutate()}
-        disabled={isPending}
-        className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
-      >
-        Supprimer
-      </button>
+      {confirming ? (
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={() => mutate()} disabled={isPending} className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
+            Oui
+          </button>
+          <span className="text-gray-300">|</span>
+          <button onClick={() => setConfirming(false)} className="text-gray-400 hover:text-gray-600 p-1">
+            Non
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirming(true)}
+          className="text-xs text-red-400 hover:text-red-600 transition-colors p-2"
+        >
+          Supprimer
+        </button>
+      )}
     </div>
   );
 }
@@ -79,8 +92,10 @@ function ChildRow({ child }: { child: User }) {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(() => sessionStorage.getItem('lastInviteUrl'));
+  const [inviteError, setInviteError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [loadingInvite, setLoadingInvite] = useState(false);
   const [showAddChild, setShowAddChild] = useState(false);
 
@@ -93,9 +108,14 @@ export default function ProfilePage() {
 
   const handleGenerateInvite = async () => {
     setLoadingInvite(true);
+    setInviteError('');
     try {
       const { data } = await apiClient.post<{ token: string }>('/invitations');
-      setInviteUrl(`${window.location.origin}/join/${data.token}`);
+      const url = `${window.location.origin}/join/${data.token}`;
+      setInviteUrl(url);
+      sessionStorage.setItem('lastInviteUrl', url);
+    } catch {
+      setInviteError("Impossible de générer le lien, réessayez.");
     } finally {
       setLoadingInvite(false);
     }
@@ -103,9 +123,14 @@ export default function ProfilePage() {
 
   const handleCopy = async () => {
     if (!inviteUrl) return;
-    await navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setCopyFailed(false);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyFailed(true);
+    }
   };
 
   return (
@@ -113,7 +138,7 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-bold mb-6">{user?.name}</h1>
 
       <section className="mb-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">Mes enfants</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Mes enfants</h2>
         {children.length > 0 && (
           <div className="mb-3 rounded-lg border border-gray-100 bg-white px-4 py-1">
             {children.map((c) => <ChildRow key={c.id} child={c} />)}
@@ -122,7 +147,7 @@ export default function ProfilePage() {
         {showAddChild
           ? <AddChildForm onClose={() => setShowAddChild(false)} />
           : (
-            <button onClick={() => setShowAddChild(true)} className="text-sm text-sage hover:text-dark-sage transition-colors">
+            <button onClick={() => setShowAddChild(true)} className="text-sm text-blush hover:text-sage transition-colors">
               + Ajouter un enfant
             </button>
           )
@@ -130,22 +155,25 @@ export default function ProfilePage() {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-dark-sage/60 mb-3">Invitation</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Invitation</h2>
         <button onClick={handleGenerateInvite} disabled={loadingInvite}
-          className="text-sm bg-sage text-white px-4 py-2 rounded-lg hover:bg-dark-sage transition-colors disabled:opacity-50">
+          className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50">
           {loadingInvite ? 'Génération...' : "Générer un lien d'invitation"}
         </button>
+        {inviteError && <p className="mt-2 text-xs text-red-500">{inviteError}</p>}
         {inviteUrl && (
           <div className="mt-3 flex items-center gap-2">
             <span className="text-xs text-gray-600 truncate max-w-xs">{inviteUrl}</span>
             <button onClick={handleCopy} className="text-xs bg-gray-100 px-3 py-1 rounded hover:bg-gray-200 transition-colors shrink-0">
-              {copied ? 'Copié !' : 'Copier'}
+              {copied ? 'Copié !' : copyFailed ? 'Erreur' : 'Copier'}
             </button>
           </div>
         )}
       </section>
 
-      <button onClick={handleLogout} className="text-sm bg-sage text-white px-4 py-2 rounded-lg hover:bg-dark-sage transition-colors">
+      <hr className="my-6 border-gray-100" />
+
+      <button onClick={handleLogout} className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors">
         Déconnexion
       </button>
     </div>
