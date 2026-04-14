@@ -1,6 +1,6 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { DRIZZLE, DrizzleDB } from '../../infrastructure/database/drizzle.provider';
 import { invitations } from '../../infrastructure/database/schema/invitations';
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
@@ -13,7 +13,7 @@ export class InvitationService {
   ) {}
 
   async generate(inviterId: string): Promise<string> {
-    const token = randomBytes(6).toString('base64url');
+    const token = randomBytes(32).toString('base64url');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await this.db.insert(invitations).values({ token, inviterId, expiresAt });
     return token;
@@ -32,6 +32,7 @@ export class InvitationService {
     await Promise.all([
       this.userRepo.addContact(currentUserId, inviterId),
       this.userRepo.addContact(inviterId, currentUserId),
+      this.db.delete(invitations).where(eq(invitations.token, token)),
     ]);
   }
 }
