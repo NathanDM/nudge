@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import apiClient from '../api/client';
 import Logo from '../components/layout/Logo';
 
 type Mode = 'login' | 'register';
@@ -35,6 +36,11 @@ export default function LoginPage() {
     try {
       if (mode === 'login') await login(phone, pin);
       else await register(name, phone, pin);
+      const joinToken = sessionStorage.getItem('joinToken');
+      if (joinToken) {
+        sessionStorage.removeItem('joinToken');
+        try { await apiClient.post(`/invitations/${joinToken}/accept`); } catch { /* ignore */ }
+      }
       navigate('/');
     } catch (err: unknown) {
       const axiosError = err as { response?: { status?: number } };

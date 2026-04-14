@@ -15,6 +15,20 @@
       "when": 1776081946718,
       "tag": "0001_powerful_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776148014409,
+      "tag": "0002_sharp_nick_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776163644107,
+      "tag": "0003_fearless_nemesis",
+      "breakpoints": true
     }
   ]
 }

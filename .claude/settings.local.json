@@ -10,7 +10,11 @@
       "Bash(node:*)",
       "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"phone\":\"0600000001\",\"pin\":\"1234\"}')",
       "Bash(xargs cat:*)",
-      "Bash(grep -r \"teal\" /Users/ndamie/Workspace/nudge/frontend/tailwind.config.*)"
+      "Bash(grep -r \"teal\" /Users/ndamie/Workspace/nudge/frontend/tailwind.config.*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

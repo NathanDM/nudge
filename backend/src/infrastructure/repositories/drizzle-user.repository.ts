@@ -37,16 +37,16 @@ export class DrizzleUserRepository implements UserRepository {
   }
 
   async createChild(name: string, parentId: string): Promise<User> {
-    try {
-      const [row] = await this.db
-        .insert(users)
-        .values({ name, managedBy: parentId })
-        .returning();
-      return toUser(row);
-    } catch (err: any) {
-      if (err?.code === '23505') throw new ConflictException('Un enfant avec ce prénom existe déjà');
-      throw err;
-    }
+    const [existing] = await this.db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.managedBy, parentId), eq(users.name, name)));
+    if (existing) throw new ConflictException('Un enfant avec ce prénom existe déjà');
+    const [row] = await this.db
+      .insert(users)
+      .values({ name, phone: null, pin: null, managedBy: parentId })
+      .returning();
+    return toUser(row);
   }
 
   async deleteChild(childId: string, userId: string): Promise<void> {
