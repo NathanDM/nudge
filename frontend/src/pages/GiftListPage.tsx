@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useOutletContext, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { Gift, User } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -12,14 +12,14 @@ export default function GiftListPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const isOwnList = user?.id === userId;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const { data: users } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: () => apiClient.get('/users').then((r) => r.data),
-  });
+  const targetUser =
+    queryClient.getQueryData<User[]>(['family'])?.find((u) => u.id === userId) ??
+    queryClient.getQueryData<User[]>(['friends'])?.find((u) => u.id === userId);
 
   const { data: gifts, isLoading } = useQuery<Gift[]>({
     queryKey: ['gifts', userId],
@@ -35,14 +35,11 @@ export default function GiftListPage() {
 
   useEffect(() => { notifyDrawerOpen(isDrawerOpen); }, [isDrawerOpen, notifyDrawerOpen]);
 
-  const targetUser = users?.find((u) => u.id === userId);
-  const listTitle = isOwnList ? 'Ma liste' : `Liste de ${targetUser?.name ?? '...'}`;
-
   return (
     <div>
       {!isOwnList && (
         <h1 onClick={() => navigate(-1)} className="text-2xl font-bold mb-6 cursor-pointer hover:opacity-70 transition-opacity">
-          {'<'} Liste de {targetUser?.name ?? '...'}
+          ← Liste de {targetUser?.name}
         </h1>
       )}
       <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm mb-6">
