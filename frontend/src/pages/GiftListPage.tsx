@@ -41,9 +41,9 @@ export default function GiftListPage() {
   return (
     <div>
       {!isOwnList && (
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 -mt-2">
-          ← Retour
-        </button>
+        <h1 onClick={() => navigate(-1)} className="text-2xl font-bold mb-6 cursor-pointer hover:opacity-70 transition-opacity">
+          {'<'} Liste de {targetUser?.name ?? '...'}
+        </h1>
       )}
       <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm mb-6">
         <h3 className="font-medium mb-3">Ajouter une idée</h3>
