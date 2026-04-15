@@ -16,6 +16,7 @@ const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
   findAll: jest.fn(),
   findById: jest.fn(),
   findByPhone: jest.fn(),
+  findByShareToken: jest.fn(),
   create: jest.fn(),
   createChild: jest.fn(),
   deleteChild: jest.fn(),
@@ -24,6 +25,10 @@ const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
   findFriendContacts: jest.fn(),
   updateContactType: jest.fn(),
   addContact: jest.fn(),
+  getShareToken: jest.fn(),
+  setShareToken: jest.fn(),
+  clearShareToken: jest.fn(),
+  findChildren: jest.fn(),
   ...overrides,
 });
 
@@ -96,6 +101,50 @@ describe('UserService', () => {
       const service = new UserService(repo as any);
 
       await expect(service.updateContactType('user-1', 'unknown', 'family')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('getShareToken', () => {
+    it('returns the current share token', async () => {
+      const repo = makeRepo({ getShareToken: jest.fn().mockResolvedValue('abc123') });
+      const service = new UserService(repo as any);
+
+      const result = await service.getShareToken('user-1');
+
+      expect(result).toEqual({ shareToken: 'abc123' });
+    });
+
+    it('returns null when no token exists', async () => {
+      const repo = makeRepo({ getShareToken: jest.fn().mockResolvedValue(null) });
+      const service = new UserService(repo as any);
+
+      const result = await service.getShareToken('user-1');
+
+      expect(result).toEqual({ shareToken: null });
+    });
+  });
+
+  describe('generateShareToken', () => {
+    it('persists a 32-char hex token and returns it', async () => {
+      const repo = makeRepo({ setShareToken: jest.fn().mockResolvedValue(undefined) });
+      const service = new UserService(repo as any);
+
+      const result = await service.generateShareToken('user-1');
+
+      expect(result.shareToken).toMatch(/^[0-9a-f]{32}$/);
+      expect(repo.setShareToken).toHaveBeenCalledWith('user-1', result.shareToken);
+    });
+  });
+
+  describe('revokeShareToken', () => {
+    it('clears the token and returns success', async () => {
+      const repo = makeRepo({ clearShareToken: jest.fn().mockResolvedValue(undefined) });
+      const service = new UserService(repo as any);
+
+      const result = await service.revokeShareToken('user-1');
+
+      expect(result).toEqual({ success: true });
+      expect(repo.clearShareToken).toHaveBeenCalledWith('user-1');
     });
   });
 });

@@ -12,10 +12,12 @@ function GiftRow({
   gift,
   token,
   onClaim,
+  onRefresh,
 }: {
   gift: PublicGift;
   token: string;
   onClaim: (id: string) => void;
+  onRefresh: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,6 +30,7 @@ function GiftRow({
       await publicClient.post(`/public/share/${token}/gifts/${gift.id}/claim`);
     } catch (err: any) {
       onClaim('__rollback__' + gift.id);
+      onRefresh();
       if (err?.response?.status === 409)
         setError('Ce cadeau vient d\'être pris');
       else setError('Erreur, réessayez');
@@ -44,7 +47,7 @@ function GiftRow({
           <p className="text-xs text-gray-500 truncate">{gift.description}</p>
         )}
         {gift.price != null && (
-          <p className="text-xs text-gray-400">{gift.price} €</p>
+          <p className="text-xs text-gray-400">{(gift.price / 100).toFixed(0)} €</p>
         )}
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
@@ -79,6 +82,13 @@ export default function PublicGiftListPage() {
       .catch(() => setError('Ce lien n\'est plus valide.'))
       .finally(() => setLoading(false));
   }, [token]);
+
+  const handleRefresh = () => {
+    publicClient
+      .get<PublicList>(`/public/share/${token}`)
+      .then((r) => setList(r.data))
+      .catch(() => {});
+  };
 
   const handleClaim = (id: string) => {
     if (id.startsWith('__rollback__')) {
@@ -125,7 +135,7 @@ export default function PublicGiftListPage() {
       ) : (
         <div className="rounded-xl border border-gray-100 bg-white px-4">
           {gifts.map((g) => (
-            <GiftRow key={g.id} gift={g} token={token!} onClaim={handleClaim} />
+            <GiftRow key={g.id} gift={g} token={token!} onClaim={handleClaim} onRefresh={handleRefresh} />
           ))}
         </div>
       )}

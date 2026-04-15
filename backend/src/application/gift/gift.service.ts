@@ -111,7 +111,8 @@ export class GiftService {
     const isOwner = gift.canBeUnclaimedByOwner(userId);
     if (!isOwner) {
       const owner = await this.userRepo.findById(gift.forUserId);
-      if (owner?.managedBy !== userId)
+      if (!owner) throw new NotFoundException('Gift owner not found');
+      if (owner.managedBy !== userId)
         throw new ForbiddenException('Cannot release this claim');
     }
 

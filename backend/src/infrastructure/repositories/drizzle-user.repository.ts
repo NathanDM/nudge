@@ -139,7 +139,7 @@ export class DrizzleUserRepository implements UserRepository {
 
   async findByShareToken(token: string): Promise<User | null> {
     const [row] = await this.db
-      .select()
+      .select({ id: users.id, name: users.name, managedBy: users.managedBy })
       .from(users)
       .where(eq(users.shareToken, token));
     return row ? toUser(row) : null;

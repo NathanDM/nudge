@@ -6,8 +6,10 @@ import {
   NotFoundException,
   ConflictException,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { UserRepository, USER_REPOSITORY } from '../../../domain/user/user.repository';
 import {
   GiftIdeaRepository,
@@ -50,6 +52,7 @@ export class PublicShareController {
 
   @Post(':token/gifts/:giftId/claim')
   @HttpCode(200)
+  @UseGuards(ThrottlerGuard)
   async claimGift(
     @Param('token') token: string,
     @Param('giftId') giftId: string,

@@ -98,6 +98,9 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
     await this.db
       .update(giftIdeas)
       .set({ claimedAnonymously: false, claimedAt: null })
-      .where(eq(giftIdeas.id, giftId));
+      .where(and(
+        eq(giftIdeas.id, giftId),
+        eq(giftIdeas.claimedAnonymously, true),
+      ));
   }
 }
