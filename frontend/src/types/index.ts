@@ -14,6 +14,7 @@ export interface Gift {
   url: string | null;
   price: number | null;
   claimedByUserId?: string | null;
+  claimedByName?: string | null;
   claimedAt?: string | null;
   claimedAnonymously?: boolean;
   canClaim?: boolean;

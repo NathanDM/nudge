@@ -115,6 +115,11 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
           )}
         </div>
       )}
+      {isOwnList && gift.claimedByName && (
+        <div className="px-5 pb-5">
+          <span className="text-xs text-gray-400">Réservé par {gift.claimedByName}</span>
+        </div>
+      )}
       {isOwnList && gift.claimedAnonymously && (
         <div className="px-5 pb-5 flex items-center justify-between">
           <span className="text-xs text-gray-400">Quelqu'un s'en occupe (anonyme)</span>

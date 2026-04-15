@@ -40,6 +40,7 @@ export class GiftService {
           description: g.description,
           url: g.url,
           price: g.price,
+          claimedByName: g.claimedByName,
           claimedAnonymously: g.claimedAnonymously,
           canDelete: true,
           createdAt: g.createdAt,
