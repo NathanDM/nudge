@@ -25,6 +25,15 @@ export class UserController {
     return this.userService.getFriendContacts(req.user.id);
   }
 
+  @Post('contacts')
+  addContact(
+    @Req() req: AuthRequest,
+    @Body('phone') phone: string,
+    @Body('contactType') contactType?: 'family' | 'friend',
+  ) {
+    return this.userService.addContactByPhone(req.user.id, phone, contactType);
+  }
+
   @Post('children')
   createChild(@Req() req: AuthRequest, @Body('name') name: string) {
     return this.userService.createChild(name, req.user.id);

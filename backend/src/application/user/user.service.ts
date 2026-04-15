@@ -44,11 +44,11 @@ export class UserService {
     if (!found) throw new NotFoundException('Contact introuvable');
   }
 
-  async addContactByPhone(userId: string, phone: string): Promise<Omit<User, 'pin'>> {
+  async addContactByPhone(userId: string, phone: string, contactType: 'family' | 'friend' = 'friend'): Promise<Omit<User, 'pin'>> {
     const lastEight = phone.replace(/\D/g, '').slice(-8);
     const contact = await this.userRepo.findByPhone(lastEight);
     if (!contact) throw new NotFoundException('Utilisateur introuvable');
-    await this.userRepo.addContact(userId, contact.id);
+    await this.userRepo.addContact(userId, contact.id, contactType);
     const { pin, ...rest } = contact;
     return rest;
   }

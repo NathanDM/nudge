@@ -130,10 +130,10 @@ export class DrizzleUserRepository implements UserRepository {
     return result.length > 0;
   }
 
-  async addContact(userId: string, contactId: string): Promise<void> {
+  async addContact(userId: string, contactId: string, contactType: 'family' | 'friend' = 'friend'): Promise<void> {
     await this.db
       .insert(userContacts)
-      .values({ userId, contactId })
+      .values({ userId, contactId, contactType })
       .onConflictDoNothing();
   }
 }

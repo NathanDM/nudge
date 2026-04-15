@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import apiClient from '../api/client';
 import { User } from '../types';
+import { AppShellContext } from '../components/layout/AppShell';
 
 function AddChildForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
@@ -92,12 +93,21 @@ function ChildRow({ child }: { child: User }) {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [inviteUrl, setInviteUrl] = useState<string | null>(() => sessionStorage.getItem('lastInviteUrl'));
   const [inviteError, setInviteError] = useState('');
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [loadingInvite, setLoadingInvite] = useState(false);
   const [showAddChild, setShowAddChild] = useState(false);
+
+  useEffect(() => {
+    setPlusHandler(() => () => setShowAddChild(true));
+    setCloseHandler(() => () => setShowAddChild(false));
+    return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
+  }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => { notifyDrawerOpen(showAddChild); }, [showAddChild, notifyDrawerOpen]);
 
   const { data: children = [] } = useQuery<User[]>({
     queryKey: ['children'],
