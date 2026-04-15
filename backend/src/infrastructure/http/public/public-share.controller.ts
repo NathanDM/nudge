@@ -6,7 +6,6 @@ import {
   Req,
   NotFoundException,
   ConflictException,
-  ForbiddenException,
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
@@ -69,8 +68,6 @@ export class PublicShareController {
     const callerId: string | undefined = req.user?.id;
 
     if (callerId) {
-      if (callerId === owner.id)
-        throw new ForbiddenException('Cannot claim your own gift');
       const gift = await this.giftRepo.findById(giftId);
       if (!gift) throw new NotFoundException('Gift not found');
       if (gift.isClaimed()) throw new ConflictException('already_claimed');
