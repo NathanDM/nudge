@@ -13,7 +13,7 @@ export class InvitationService {
   ) {}
 
   async generate(inviterId: string): Promise<string> {
-    const token = randomBytes(32).toString('base64url');
+    const token = randomBytes(6).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await this.db.insert(invitations).values({ token, inviterId, expiresAt });
     return token;
