@@ -5,6 +5,7 @@ import AmisPage from './pages/AmisPage';
 import GiftListPage from './pages/GiftListPage';
 import ProfilePage from './pages/ProfilePage';
 import JoinPage from './pages/JoinPage';
+import PublicGiftListPage from './pages/PublicGiftListPage';
 import AppShell from './components/layout/AppShell';
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/join/:token" element={<JoinPage />} />
+        <Route path="/share/:token" element={<PublicGiftListPage />} />
         <Route element={<AppShell />}>
           <Route path="/" element={<FamillePage />} />
           <Route path="/amis" element={<AmisPage />} />

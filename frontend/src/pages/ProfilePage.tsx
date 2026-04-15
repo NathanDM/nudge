@@ -100,6 +100,9 @@ export default function ProfilePage() {
   const [copyFailed, setCopyFailed] = useState(false);
   const [loadingInvite, setLoadingInvite] = useState(false);
   const [showAddChild, setShowAddChild] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
     setPlusHandler(() => () => setShowAddChild(true));
@@ -113,6 +116,42 @@ export default function ProfilePage() {
     queryKey: ['children'],
     queryFn: () => apiClient.get('/users/children').then((r) => r.data),
   });
+
+  useEffect(() => {
+    apiClient.get<{ shareToken: string | null }>('/users/share-token')
+      .then((r) => setShareToken(r.data.shareToken))
+      .catch(() => setShareToken(null));
+  }, []);
+
+  const handleGenerateShareToken = async () => {
+    setShareLoading(true);
+    try {
+      const { data } = await apiClient.post<{ shareToken: string }>('/users/share-token');
+      setShareToken(data.shareToken);
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleRevokeShareToken = async () => {
+    setShareLoading(true);
+    try {
+      await apiClient.delete('/users/share-token');
+      setShareToken(null);
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleCopyShareUrl = async () => {
+    if (!shareToken) return;
+    const url = `${window.location.origin}/share/${shareToken}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {}
+  };
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -160,6 +199,40 @@ export default function ProfilePage() {
             </button>
           )
         }
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Partager ma liste</h2>
+        {shareToken ? (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-gray-600 truncate max-w-xs">
+                {`${window.location.origin}/share/${shareToken}`}
+              </span>
+              <button
+                onClick={handleCopyShareUrl}
+                className="text-xs bg-gray-100 px-3 py-1 rounded hover:bg-gray-200 transition-colors shrink-0"
+              >
+                {shareCopied ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
+            <button
+              onClick={handleRevokeShareToken}
+              disabled={shareLoading}
+              className="text-xs text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+            >
+              Révoquer le lien
+            </button>
+          </div>
+        ) : shareToken === null ? (
+          <button
+            onClick={handleGenerateShareToken}
+            disabled={shareLoading}
+            className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50"
+          >
+            {shareLoading ? 'Génération...' : 'Générer un lien de partage'}
+          </button>
+        ) : null}
       </section>
 
       <section className="mb-6">

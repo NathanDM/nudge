@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
 import { users } from './users';
 
 export const giftIdeas = pgTable('gift_ideas', {
@@ -15,5 +15,6 @@ export const giftIdeas = pgTable('gift_ideas', {
   price: integer('price'),
   claimedByUserId: uuid('claimed_by_user_id').references(() => users.id),
   claimedAt: timestamp('claimed_at'),
+  claimedAnonymously: boolean('claimed_anonymously').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

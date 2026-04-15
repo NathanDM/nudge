@@ -3,11 +3,13 @@ import {
   Inject,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   GiftIdeaRepository,
   GIFT_IDEA_REPOSITORY,
 } from '../../domain/gift/gift-idea.repository';
+import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
 import { GiftResponseDto } from './gift.dto';
 import { CreateGiftDto } from './create-gift.dto';
 
@@ -16,6 +18,8 @@ export class GiftService {
   constructor(
     @Inject(GIFT_IDEA_REPOSITORY)
     private readonly giftRepo: GiftIdeaRepository,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepo: UserRepository,
   ) {}
 
   async getGiftsForUser(
@@ -36,6 +40,7 @@ export class GiftService {
           description: g.description,
           url: g.url,
           price: g.price,
+          claimedAnonymously: g.claimedAnonymously,
           canDelete: true,
           createdAt: g.createdAt,
         }));
@@ -96,5 +101,21 @@ export class GiftService {
     if (!gift.canBeUnclaimedBy(userId))
       throw new ForbiddenException('Cannot unclaim this gift');
     return this.giftRepo.unclaim(giftId);
+  }
+
+  async releaseAnonymousClaim(giftId: string, userId: string) {
+    const gift = await this.giftRepo.findById(giftId);
+    if (!gift) throw new NotFoundException('Gift not found');
+    if (!gift.claimedAnonymously) throw new BadRequestException('Not anonymously claimed');
+
+    const isOwner = gift.canBeUnclaimedByOwner(userId);
+    if (!isOwner) {
+      const owner = await this.userRepo.findById(gift.forUserId);
+      if (owner?.managedBy !== userId)
+        throw new ForbiddenException('Cannot release this claim');
+    }
+
+    await this.giftRepo.releaseAnonymousClaim(giftId);
+    return { success: true };
   }
 }

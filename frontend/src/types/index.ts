@@ -15,10 +15,20 @@ export interface Gift {
   price: number | null;
   claimedByUserId?: string | null;
   claimedAt?: string | null;
+  claimedAnonymously?: boolean;
   canClaim?: boolean;
   canUnclaim?: boolean;
   canDelete: boolean;
   createdAt: string;
+}
+
+export interface PublicGift {
+  id: string;
+  title: string;
+  description: string | null;
+  url: string | null;
+  price: number | null;
+  isClaimed: boolean;
 }
 
 export interface AuthState {

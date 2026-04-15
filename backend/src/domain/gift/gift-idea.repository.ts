@@ -16,6 +16,8 @@ export interface GiftIdeaRepository {
   delete(id: string): Promise<void>;
   claim(id: string, claimedByUserId: string): Promise<GiftIdea>;
   unclaim(id: string): Promise<GiftIdea>;
+  claimAnonymously(giftId: string, forUserId: string): Promise<'ok' | 'already_claimed'>;
+  releaseAnonymousClaim(giftId: string): Promise<void>;
 }
 
 export const GIFT_IDEA_REPOSITORY = Symbol('GIFT_IDEA_REPOSITORY');

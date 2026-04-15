@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { GiftIdeaRepository, GiftWithAuthor } from '../../domain/gift/gift-idea.repository';
 import { GiftIdea } from '../../domain/gift/gift-idea.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
@@ -20,6 +20,7 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
       row.price,
       row.claimedByUserId,
       row.claimedAt,
+      row.claimedAnonymously,
       row.createdAt,
     );
   }
@@ -77,5 +78,26 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
       .where(eq(giftIdeas.id, id))
       .returning();
     return this.toEntity(row);
+  }
+
+  async claimAnonymously(giftId: string, forUserId: string): Promise<'ok' | 'already_claimed'> {
+    const result = await this.db
+      .update(giftIdeas)
+      .set({ claimedAnonymously: true, claimedAt: new Date() })
+      .where(and(
+        eq(giftIdeas.id, giftId),
+        eq(giftIdeas.forUserId, forUserId),
+        eq(giftIdeas.claimedAnonymously, false),
+        isNull(giftIdeas.claimedByUserId),
+      ))
+      .returning({ id: giftIdeas.id });
+    return result.length === 1 ? 'ok' : 'already_claimed';
+  }
+
+  async releaseAnonymousClaim(giftId: string): Promise<void> {
+    await this.db
+      .update(giftIdeas)
+      .set({ claimedAnonymously: false, claimedAt: null })
+      .where(eq(giftIdeas.id, giftId));
   }
 }

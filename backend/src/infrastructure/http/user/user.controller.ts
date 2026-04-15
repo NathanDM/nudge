@@ -52,4 +52,19 @@ export class UserController {
   ) {
     return this.userService.updateContactType(req.user.id, contactId, contactType);
   }
+
+  @Get('share-token')
+  getShareToken(@Req() req: AuthRequest) {
+    return this.userService.getShareToken(req.user.id);
+  }
+
+  @Post('share-token')
+  generateShareToken(@Req() req: AuthRequest) {
+    return this.userService.generateShareToken(req.user.id);
+  }
+
+  @Delete('share-token')
+  revokeShareToken(@Req() req: AuthRequest) {
+    return this.userService.revokeShareToken(req.user.id);
+  }
 }

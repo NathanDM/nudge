@@ -47,4 +47,9 @@ export class GiftController {
   async unclaimGift(@Param('giftId') giftId: string, @Req() req: any) {
     return this.giftService.unclaimGift(giftId, req.user.id);
   }
+
+  @Delete('users/gifts/:giftId/anonymous-claim')
+  async releaseAnonymousClaim(@Param('giftId') giftId: string, @Req() req: any) {
+    return this.giftService.releaseAnonymousClaim(giftId, req.user.id);
+  }
 }

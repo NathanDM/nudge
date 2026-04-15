@@ -136,4 +136,34 @@ export class DrizzleUserRepository implements UserRepository {
       .values({ userId, contactId, contactType })
       .onConflictDoNothing();
   }
+
+  async findByShareToken(token: string): Promise<User | null> {
+    const [row] = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.shareToken, token));
+    return row ? toUser(row) : null;
+  }
+
+  async getShareToken(userId: string): Promise<string | null> {
+    const [row] = await this.db
+      .select({ shareToken: users.shareToken })
+      .from(users)
+      .where(eq(users.id, userId));
+    return row?.shareToken ?? null;
+  }
+
+  async setShareToken(userId: string, token: string): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ shareToken: token })
+      .where(eq(users.id, userId));
+  }
+
+  async clearShareToken(userId: string): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ shareToken: null })
+      .where(eq(users.id, userId));
+  }
 }

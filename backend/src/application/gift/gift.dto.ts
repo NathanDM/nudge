@@ -9,6 +9,7 @@ export class GiftResponseDto {
   price: number | null;
   claimedByUserId?: string | null;
   claimedAt?: Date | null;
+  claimedAnonymously?: boolean;
   canClaim?: boolean;
   canUnclaim?: boolean;
   canDelete: boolean;

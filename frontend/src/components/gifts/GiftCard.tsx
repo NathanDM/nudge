@@ -42,6 +42,11 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gifts', forUserId] }),
   });
 
+  const releaseAnonMutation = useMutation({
+    mutationFn: () => apiClient.delete(`/users/gifts/${gift.id}/anonymous-claim`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gifts', forUserId] }),
+  });
+
   const priceDisplay = gift.price ? `${(gift.price / 100).toFixed(0)}€` : null;
   const claimedByOther = !!gift.claimedByUserId && !gift.canUnclaim;
 
@@ -108,6 +113,18 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
               Déjà réservé
             </div>
           )}
+        </div>
+      )}
+      {isOwnList && gift.claimedAnonymously && (
+        <div className="px-5 pb-5 flex items-center justify-between">
+          <span className="text-xs text-gray-400">Quelqu'un s'en occupe (anonyme)</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); releaseAnonMutation.mutate(); }}
+            disabled={releaseAnonMutation.isPending}
+            className="text-xs text-blush hover:text-sage transition-colors disabled:opacity-50"
+          >
+            Libérer
+          </button>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
 import { User } from '../../domain/user/user.entity';
 
@@ -51,5 +52,21 @@ export class UserService {
     await this.userRepo.addContact(userId, contact.id, contactType);
     const { pin, ...rest } = contact;
     return rest;
+  }
+
+  async getShareToken(userId: string): Promise<{ shareToken: string | null }> {
+    const shareToken = await this.userRepo.getShareToken(userId);
+    return { shareToken };
+  }
+
+  async generateShareToken(userId: string): Promise<{ shareToken: string }> {
+    const shareToken = randomBytes(16).toString('hex');
+    await this.userRepo.setShareToken(userId, shareToken);
+    return { shareToken };
+  }
+
+  async revokeShareToken(userId: string): Promise<{ success: true }> {
+    await this.userRepo.clearShareToken(userId);
+    return { success: true };
   }
 }
