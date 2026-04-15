@@ -3,13 +3,16 @@ import {
   Get,
   Post,
   Param,
+  Req,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { OptionalAuthGuard } from '../auth/optional-auth.guard';
 import { UserRepository, USER_REPOSITORY } from '../../../domain/user/user.repository';
 import {
   GiftIdeaRepository,
@@ -23,6 +26,7 @@ interface PublicGiftDto {
   url: string | null;
   price: number | null;
   isClaimed: boolean;
+  claimedByName: string | null;
 }
 
 @Controller('api/public/share')
@@ -45,6 +49,7 @@ export class PublicShareController {
       url: g.url,
       price: g.price,
       isClaimed: g.isClaimed(),
+      claimedByName: g.claimedByName,
     }));
 
     return { ownerName: owner.name, gifts: publicGifts };
@@ -52,17 +57,29 @@ export class PublicShareController {
 
   @Post(':token/gifts/:giftId/claim')
   @HttpCode(200)
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard, OptionalAuthGuard)
   async claimGift(
     @Param('token') token: string,
     @Param('giftId') giftId: string,
+    @Req() req: any,
   ) {
     const owner = await this.userRepo.findByShareToken(token);
     if (!owner) throw new NotFoundException('Ce lien n\'est plus valide.');
 
-    const result = await this.giftRepo.claimAnonymously(giftId, owner.id);
-    if (result === 'already_claimed')
-      throw new ConflictException('already_claimed');
+    const callerId: string | undefined = req.user?.id;
+
+    if (callerId) {
+      if (callerId === owner.id)
+        throw new ForbiddenException('Cannot claim your own gift');
+      const gift = await this.giftRepo.findById(giftId);
+      if (!gift) throw new NotFoundException('Gift not found');
+      if (gift.isClaimed()) throw new ConflictException('already_claimed');
+      await this.giftRepo.claim(giftId, callerId);
+    } else {
+      const result = await this.giftRepo.claimAnonymously(giftId, owner.id);
+      if (result === 'already_claimed')
+        throw new ConflictException('already_claimed');
+    }
 
     return { success: true };
   }

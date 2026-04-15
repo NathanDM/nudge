@@ -1,5 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { eq, and, isNull } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { GiftIdeaRepository, GiftWithAuthor } from '../../domain/gift/gift-idea.repository';
 import { GiftIdea } from '../../domain/gift/gift-idea.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
@@ -26,14 +27,16 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
   }
 
   async findByForUserId(forUserId: string): Promise<GiftWithAuthor[]> {
+    const claimers = alias(users, 'claimer');
     const rows = await this.db
-      .select({ gift: giftIdeas, addedByName: users.name })
+      .select({ gift: giftIdeas, addedByName: users.name, claimedByName: claimers.name })
       .from(giftIdeas)
       .innerJoin(users, eq(giftIdeas.addedByUserId, users.id))
+      .leftJoin(claimers, eq(giftIdeas.claimedByUserId, claimers.id))
       .where(eq(giftIdeas.forUserId, forUserId))
       .orderBy(giftIdeas.createdAt);
-    return rows.map(({ gift, addedByName }) =>
-      Object.assign(this.toEntity(gift), { addedByName }),
+    return rows.map(({ gift, addedByName, claimedByName }) =>
+      Object.assign(this.toEntity(gift), { addedByName, claimedByName: claimedByName ?? null }),
     );
   }
 

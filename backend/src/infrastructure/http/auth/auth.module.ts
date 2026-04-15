@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../../../application/auth/auth.service';
 import { AuthGuard } from './auth.guard';
+import { OptionalAuthGuard } from './optional-auth.guard';
 import { USER_REPOSITORY } from '../../../domain/user/user.repository';
 import { DrizzleUserRepository } from '../../repositories/drizzle-user.repository';
 
@@ -17,8 +18,9 @@ import { DrizzleUserRepository } from '../../repositories/drizzle-user.repositor
   providers: [
     AuthService,
     AuthGuard,
+    OptionalAuthGuard,
     { provide: USER_REPOSITORY, useClass: DrizzleUserRepository },
   ],
-  exports: [JwtModule, AuthGuard],
+  exports: [JwtModule, AuthGuard, OptionalAuthGuard],
 })
 export class AuthModule {}

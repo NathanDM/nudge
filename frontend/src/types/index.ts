@@ -29,6 +29,7 @@ export interface PublicGift {
   url: string | null;
   price: number | null;
   isClaimed: boolean;
+  claimedByName: string | null;
 }
 
 export interface AuthState {

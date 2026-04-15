@@ -28,6 +28,7 @@ function GiftRow({
     onClaim(gift.id);
     try {
       await publicClient.post(`/public/share/${token}/gifts/${gift.id}/claim`);
+      onRefresh();
     } catch (err: any) {
       onClaim('__rollback__' + gift.id);
       onRefresh();
@@ -51,7 +52,11 @@ function GiftRow({
         )}
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
       </div>
-      {gift.isClaimed ? (
+      {gift.claimedByName ? (
+        <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full shrink-0">
+          Réservé par {gift.claimedByName}
+        </span>
+      ) : gift.isClaimed ? (
         <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full shrink-0">
           Quelqu'un s'en occupe
         </span>
