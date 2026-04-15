@@ -7,6 +7,7 @@ interface PublicList {
   ownerName: string;
   gifts: PublicGift[];
   hiddenCount: number;
+  hiddenContext: 'owner' | 'anonymous' | null;
 }
 
 function GiftRow({
@@ -145,12 +146,20 @@ export default function PublicGiftListPage() {
           ))}
           {list.hiddenCount > 0 && (
             <div className="py-3 text-center border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-2">
-                {list.hiddenCount} autre{list.hiddenCount > 1 ? 's' : ''} idée{list.hiddenCount > 1 ? 's' : ''} {list.hiddenCount > 1 ? 'ont' : 'a'} été proposée{list.hiddenCount > 1 ? 's' : ''}.
-              </p>
-              <Link to="/login" className="text-xs text-blush hover:text-sage underline">
-                Connecte-toi pour les voir
-              </Link>
+              {list.hiddenContext === 'owner' ? (
+                <p className="text-xs text-gray-400">
+                  🎁 {list.hiddenCount} idée{list.hiddenCount > 1 ? 's' : ''} de surprise {list.hiddenCount > 1 ? 'ont' : 'a'} été proposée{list.hiddenCount > 1 ? 's' : ''} par tes amis
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-400 mb-2">
+                    {list.hiddenCount} autre{list.hiddenCount > 1 ? 's' : ''} idée{list.hiddenCount > 1 ? 's' : ''} {list.hiddenCount > 1 ? 'ont' : 'a'} été proposée{list.hiddenCount > 1 ? 's' : ''}.
+                  </p>
+                  <Link to="/login" className="text-xs text-blush hover:text-sage underline">
+                    Connecte-toi pour les voir
+                  </Link>
+                </>
+              )}
             </div>
           )}
         </div>

@@ -42,9 +42,14 @@ export class PublicShareController {
     if (!owner) throw new NotFoundException('Ce lien n\'est plus valide.');
 
     const all = await this.giftRepo.findByForUserId(owner.id);
-    const isAuthenticated = !!req.user;
-    const visible = isAuthenticated ? all : all.filter((g) => g.addedByUserId === owner.id);
+    const callerId: string | undefined = req.user?.id;
+    const isOwner = callerId === owner.id;
+    const showAll = !!callerId && !isOwner;
+
+    const visible = showAll ? all : all.filter((g) => g.addedByUserId === owner.id);
     const hiddenCount = all.length - visible.length;
+    const hiddenContext: 'owner' | 'anonymous' | null =
+      hiddenCount === 0 ? null : isOwner ? 'owner' : 'anonymous';
 
     const publicGifts: PublicGiftDto[] = visible.map((g) => ({
       id: g.id,
@@ -56,7 +61,7 @@ export class PublicShareController {
       claimedByName: g.claimedByName,
     }));
 
-    return { ownerName: owner.name, gifts: publicGifts, hiddenCount };
+    return { ownerName: owner.name, gifts: publicGifts, hiddenCount, hiddenContext };
   }
 
   @Post(':token/gifts/:giftId/claim')
