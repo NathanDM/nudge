@@ -36,12 +36,17 @@ export class PublicShareController {
   ) {}
 
   @Get(':token')
-  async getPublicList(@Param('token') token: string) {
+  @UseGuards(OptionalAuthGuard)
+  async getPublicList(@Param('token') token: string, @Req() req: any) {
     const owner = await this.userRepo.findByShareToken(token);
     if (!owner) throw new NotFoundException('Ce lien n\'est plus valide.');
 
-    const gifts = await this.giftRepo.findByForUserId(owner.id);
-    const publicGifts: PublicGiftDto[] = gifts.map((g) => ({
+    const all = await this.giftRepo.findByForUserId(owner.id);
+    const isAuthenticated = !!req.user;
+    const visible = isAuthenticated ? all : all.filter((g) => g.addedByUserId === owner.id);
+    const hiddenCount = all.length - visible.length;
+
+    const publicGifts: PublicGiftDto[] = visible.map((g) => ({
       id: g.id,
       title: g.title,
       description: g.description,
@@ -51,7 +56,7 @@ export class PublicShareController {
       claimedByName: g.claimedByName,
     }));
 
-    return { ownerName: owner.name, gifts: publicGifts };
+    return { ownerName: owner.name, gifts: publicGifts, hiddenCount };
   }
 
   @Post(':token/gifts/:giftId/claim')

@@ -6,6 +6,7 @@ import { PublicGift } from '../types';
 interface PublicList {
   ownerName: string;
   gifts: PublicGift[];
+  hiddenCount: number;
 }
 
 function GiftRow({
@@ -135,13 +136,23 @@ export default function PublicGiftListPage() {
         Réservez un cadeau pour éviter les doublons.
       </p>
 
-      {gifts.length === 0 ? (
+      {gifts.length === 0 && list.hiddenCount === 0 ? (
         <p className="text-sm text-gray-500">Aucun cadeau pour l'instant.</p>
       ) : (
         <div className="rounded-xl border border-gray-100 bg-white px-4">
           {gifts.map((g) => (
             <GiftRow key={g.id} gift={g} token={token!} onClaim={handleClaim} onRefresh={handleRefresh} />
           ))}
+          {list.hiddenCount > 0 && (
+            <div className="py-3 text-center border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-2">
+                {list.hiddenCount} autre{list.hiddenCount > 1 ? 's' : ''} idée{list.hiddenCount > 1 ? 's' : ''} {list.hiddenCount > 1 ? 'ont' : 'a'} été proposée{list.hiddenCount > 1 ? 's' : ''}.
+              </p>
+              <Link to="/login" className="text-xs text-blush hover:text-sage underline">
+                Connecte-toi pour les voir
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
