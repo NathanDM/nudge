@@ -37,13 +37,13 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Prénom de l'enfant"
           autoFocus
-          className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
+          className="border border-salmon/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-salmon"
           required
         />
         {error && <span className="text-red-500 text-xs">{error}</span>}
       </div>
       <button type="submit" disabled={!name || loading}
-        className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50">
+        className="bg-salmon text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50">
         {loading ? '...' : 'Créer'}
       </button>
       <button type="button" onClick={onClose} className="text-sm text-gray-400 hover:text-gray-600 px-3 py-2">
@@ -91,7 +91,7 @@ function ChildRow({ child }: { child: User }) {
 }
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [inviteUrl, setInviteUrl] = useState<string | null>(() => sessionStorage.getItem('lastInviteUrl'));
@@ -155,7 +155,7 @@ export default function ProfilePage() {
         {showAddChild
           ? <AddChildForm onClose={() => setShowAddChild(false)} />
           : (
-            <button onClick={() => setShowAddChild(true)} className="text-sm text-blush hover:text-sage transition-colors">
+            <button onClick={() => setShowAddChild(true)} className="text-sm text-salmon hover:text-sage transition-colors">
               + Ajouter un enfant
             </button>
           )
@@ -165,7 +165,7 @@ export default function ProfilePage() {
       <section className="mb-6">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Invitation</h2>
         <button onClick={handleGenerateInvite} disabled={loadingInvite}
-          className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50">
+          className="text-sm bg-salmon text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50">
           {loadingInvite ? 'Génération...' : "Générer un lien d'invitation"}
         </button>
         {inviteError && <p className="mt-2 text-xs text-red-500">{inviteError}</p>}
@@ -181,7 +181,7 @@ export default function ProfilePage() {
 
       <hr className="my-6 border-gray-100" />
 
-      <button onClick={handleLogout} className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors">
+      <button onClick={handleLogout} className="text-sm bg-salmon text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors">
         Déconnexion
       </button>
     </div>
