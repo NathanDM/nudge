@@ -67,29 +67,20 @@ export class DrizzleUserRepository implements UserRepository {
   }
 
   async findFamilyContacts(userId: string): Promise<User[]> {
-    // UNION: direct family contacts + their children (propagated, read-time only)
-    // Raw SQL used here because Drizzle's union() + self-join alias combination
-    // requires matching column order that's simpler to guarantee with explicit SQL.
     const result = await this.db.execute(sql`
-      SELECT u.id, u.name, u.managed_by AS "managedBy"
+      SELECT DISTINCT u.id, u.name, u.managed_by AS "managedBy"
       FROM users u
-      WHERE u.managed_by = ${userId}
-      UNION
-      SELECT u.id, u.name, u.managed_by AS "managedBy"
-      FROM users u
-      INNER JOIN user_contacts uc
-        ON uc.contact_id = u.id
-        AND uc.user_id = ${userId}
-        AND uc.contact_type = 'family'
-      UNION
-      SELECT children.id, children.name, children.managed_by AS "managedBy"
-      FROM users children
-      INNER JOIN users parent ON parent.id = children.managed_by
-      INNER JOIN user_contacts uc
-        ON uc.contact_id = parent.id
-        AND uc.user_id = ${userId}
-        AND uc.contact_type = 'family'
-      ORDER BY name
+      WHERE
+        u.managed_by = ${userId}
+        OR u.id IN (
+          SELECT uc.contact_id FROM user_contacts uc
+          WHERE uc.user_id = ${userId} AND uc.contact_type = 'family'
+        )
+        OR u.managed_by IN (
+          SELECT uc.contact_id FROM user_contacts uc
+          WHERE uc.user_id = ${userId} AND uc.contact_type = 'family'
+        )
+      ORDER BY u.name
     `);
     return (result.rows as Array<{ id: string; name: string; managedBy: string | null }>)
       .map((r) => new User(r.id, r.name, null, null, r.managedBy, new Date()));
