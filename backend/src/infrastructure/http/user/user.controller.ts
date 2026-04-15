@@ -67,4 +67,19 @@ export class UserController {
   revokeShareToken(@Req() req: AuthRequest) {
     return this.userService.revokeShareToken(req.user.id);
   }
+
+  @Get('children/:childId/share-token')
+  getChildShareToken(@Req() req: AuthRequest, @Param('childId') childId: string) {
+    return this.userService.getChildShareToken(childId, req.user.id);
+  }
+
+  @Post('children/:childId/share-token')
+  generateChildShareToken(@Req() req: AuthRequest, @Param('childId') childId: string) {
+    return this.userService.generateChildShareToken(childId, req.user.id);
+  }
+
+  @Delete('children/:childId/share-token')
+  revokeChildShareToken(@Req() req: AuthRequest, @Param('childId') childId: string) {
+    return this.userService.revokeChildShareToken(childId, req.user.id);
+  }
 }

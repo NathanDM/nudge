@@ -53,6 +53,66 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
   );
 }
 
+function ChildShareToken({ childId }: { childId: string }) {
+  const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    apiClient.get<{ shareToken: string | null }>(`/users/children/${childId}/share-token`)
+      .then((r) => setShareToken(r.data.shareToken))
+      .catch(() => setShareToken(null));
+  }, [childId]);
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const { data } = await apiClient.post<{ shareToken: string }>(`/users/children/${childId}/share-token`);
+      setShareToken(data.shareToken);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const revoke = async () => {
+    setLoading(true);
+    try {
+      await apiClient.delete(`/users/children/${childId}/share-token`);
+      setShareToken(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copy = async () => {
+    if (!shareToken) return;
+    await navigator.clipboard.writeText(`${window.location.origin}/share/${shareToken}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (shareToken === undefined) return null;
+
+  if (shareToken)
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <button onClick={copy} className="text-xs text-gray-500 hover:text-gray-700 underline truncate max-w-[140px]">
+          {copied ? 'Copié !' : 'Copier le lien'}
+        </button>
+        <span className="text-gray-200">|</span>
+        <button onClick={revoke} disabled={loading} className="text-xs text-red-400 hover:text-red-600 disabled:opacity-50">
+          Révoquer
+        </button>
+      </div>
+    );
+
+  return (
+    <button onClick={generate} disabled={loading} className="text-xs text-salmon hover:text-sage transition-colors mt-1 disabled:opacity-50">
+      {loading ? '...' : 'Générer un lien'}
+    </button>
+  );
+}
+
 function ChildRow({ child }: { child: User }) {
   const [confirming, setConfirming] = useState(false);
   const queryClient = useQueryClient();
@@ -66,26 +126,31 @@ function ChildRow({ child }: { child: User }) {
   });
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-      <span className="text-sm font-medium">{child.name}</span>
-      {confirming ? (
-        <div className="flex items-center gap-2 text-sm">
-          <button onClick={() => mutate()} disabled={isPending} className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
-            Oui
-          </button>
-          <span className="text-gray-300">|</span>
-          <button onClick={() => setConfirming(false)} className="text-gray-400 hover:text-gray-600 p-1">
-            Non
-          </button>
+    <div className="py-2 border-b border-gray-100 last:border-0">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{child.name}</span>
+          <ChildShareToken childId={child.id} />
         </div>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          className="text-xs text-red-400 hover:text-red-600 transition-colors p-2"
-        >
-          Supprimer
-        </button>
-      )}
+        {confirming ? (
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => mutate()} disabled={isPending} className="text-red-500 hover:text-red-700 font-medium disabled:opacity-50">
+              Oui
+            </button>
+            <span className="text-gray-300">|</span>
+            <button onClick={() => setConfirming(false)} className="text-gray-400 hover:text-gray-600 p-1">
+              Non
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirming(true)}
+            className="text-xs text-red-400 hover:text-red-600 transition-colors p-2"
+          >
+            Supprimer
+          </button>
+        )}
+      </div>
     </div>
   );
 }

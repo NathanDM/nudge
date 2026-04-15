@@ -69,4 +69,25 @@ export class UserService {
     await this.userRepo.clearShareToken(userId);
     return { success: true };
   }
+
+  async getChildShareToken(childId: string, parentId: string): Promise<{ shareToken: string | null }> {
+    const child = await this.userRepo.findById(childId);
+    if (!child || child.managedBy !== parentId) throw new ForbiddenException('Accès refusé');
+    return { shareToken: await this.userRepo.getShareToken(childId) };
+  }
+
+  async generateChildShareToken(childId: string, parentId: string): Promise<{ shareToken: string }> {
+    const child = await this.userRepo.findById(childId);
+    if (!child || child.managedBy !== parentId) throw new ForbiddenException('Accès refusé');
+    const shareToken = randomBytes(16).toString('hex');
+    await this.userRepo.setShareToken(childId, shareToken);
+    return { shareToken };
+  }
+
+  async revokeChildShareToken(childId: string, parentId: string): Promise<{ success: true }> {
+    const child = await this.userRepo.findById(childId);
+    if (!child || child.managedBy !== parentId) throw new ForbiddenException('Accès refusé');
+    await this.userRepo.clearShareToken(childId);
+    return { success: true };
+  }
 }
