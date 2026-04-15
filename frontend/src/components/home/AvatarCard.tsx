@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 import { User } from '../../types';
 
 const PALETTE = [
@@ -28,8 +27,6 @@ function getInitials(name: string) {
 
 export function AvatarCard({ member }: { member: User }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isMe = user?.id === member.id;
   const isChild = !!member.managedBy;
   const color = colorForId(member.id);
   const textColor = textColorFor(color);
@@ -38,16 +35,14 @@ export function AvatarCard({ member }: { member: User }) {
     <button onClick={() => navigate(`/user/${member.id}`)} className="flex flex-col items-center gap-1 group outline-none">
       <div
         style={{ backgroundColor: color, color: textColor }}
-        className={`w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold transition-all group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-sage group-focus-visible:ring-offset-2 ${
-          isMe ? 'ring-2 ring-offset-2 ring-sage' : 'shadow-sm group-hover:shadow-md'
-        } ${isChild ? 'ring-1 ring-offset-1 ring-blush/50' : ''}`}
+        className={`w-16 h-16 rounded-full flex items-center justify-center text-lg font-bold transition-all group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-sage group-focus-visible:ring-offset-2
+          shadow-sm group-hover:shadow-md ${isChild ? 'ring-1 ring-offset-1 ring-blush/50' : ''}`}
       >
         {getInitials(member.name)}
       </div>
       <span className="text-xs font-medium text-center leading-tight max-w-[72px] truncate">
-        {isMe ? 'Moi' : member.name.split(' ')[0]}
+        {member.name.split(' ')[0]}
       </span>
-      {isChild && <span className="text-[10px] text-gray-400 leading-none">enfant</span>}
     </button>
   );
 }
