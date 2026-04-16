@@ -6,6 +6,12 @@
     "frontend",
     "backend"
   ],
+  "overrides": {
+    "esbuild": "^0.25.0",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
+    }
+  },
   "scripts": {
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
