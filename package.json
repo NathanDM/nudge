@@ -18,6 +18,7 @@
   "scripts": {
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
+    "dev:ngrok": "ngrok http 5173",
     "build": "npm run build -w backend && npm run build -w frontend"
   }
 }
