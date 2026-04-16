@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
 import apiClient from '../api/client';
@@ -6,10 +6,17 @@ import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 
-function AddFamilyForm({ onClose }: { onClose: () => void }) {
+function AddFamilyForm({ onClose, open }: { onClose: () => void; open: boolean }) {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => inputRef.current?.focus(), 300);
+    return () => clearTimeout(t);
+  }, [open]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: (phone: string) =>
@@ -34,6 +41,7 @@ function AddFamilyForm({ onClose }: { onClose: () => void }) {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          ref={inputRef}
           placeholder="Numéro de téléphone"
           className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           required
@@ -115,7 +123,7 @@ export default function FamillePage() {
             <h3 className="font-semibold">Ajouter un membre</h3>
             <button onClick={() => setShowAddMember(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
           </div>
-          <AddFamilyForm onClose={() => setShowAddMember(false)} />
+          <AddFamilyForm onClose={() => setShowAddMember(false)} open={showAddMember} />
         </div>
       </div>
     </div>
