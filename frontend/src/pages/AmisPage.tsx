@@ -6,17 +6,10 @@ import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 
-function AddFriendForm({ onClose, open }: { onClose: () => void; open: boolean }) {
+function AddFriendForm({ onClose, inputRef }: { onClose: () => void; inputRef: React.RefObject<HTMLInputElement> }) {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => inputRef.current?.focus(), 300);
-    return () => clearTimeout(t);
-  }, [open]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: (phone: string) => apiClient.post('/users/contacts', { phone }).then((r) => r.data),
@@ -61,6 +54,7 @@ function AddFriendForm({ onClose, open }: { onClose: () => void; open: boolean }
 export default function AmisPage() {
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: friends = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ['friends'],
@@ -68,7 +62,7 @@ export default function AmisPage() {
   });
 
   useEffect(() => {
-    setPlusHandler(() => () => setShowAddFriend(true));
+    setPlusHandler(() => () => { setShowAddFriend(true); inputRef.current?.focus(); });
     setCloseHandler(() => () => setShowAddFriend(false));
     return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
@@ -122,7 +116,7 @@ export default function AmisPage() {
             <h3 className="font-semibold">Ajouter un ami</h3>
             <button onClick={() => setShowAddFriend(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
           </div>
-          <AddFriendForm onClose={() => setShowAddFriend(false)} open={showAddFriend} />
+          <AddFriendForm onClose={() => setShowAddFriend(false)} inputRef={inputRef} />
         </div>
       </div>
     </div>

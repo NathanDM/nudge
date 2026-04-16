@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
@@ -11,9 +11,6 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => { inputRef.current?.focus(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +35,7 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          ref={inputRef}
+          autoFocus
           placeholder="Prénom de l'enfant"
           className="border border-salmon/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-salmon"
           required

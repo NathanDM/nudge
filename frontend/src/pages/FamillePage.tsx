@@ -6,17 +6,10 @@ import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 
-function AddFamilyForm({ onClose, open }: { onClose: () => void; open: boolean }) {
+function AddFamilyForm({ onClose, inputRef }: { onClose: () => void; inputRef: React.RefObject<HTMLInputElement> }) {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => inputRef.current?.focus(), 300);
-    return () => clearTimeout(t);
-  }, [open]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: (phone: string) =>
@@ -62,6 +55,7 @@ function AddFamilyForm({ onClose, open }: { onClose: () => void; open: boolean }
 export default function FamillePage() {
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const [showAddMember, setShowAddMember] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: family = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ['family'],
@@ -69,7 +63,7 @@ export default function FamillePage() {
   });
 
   useEffect(() => {
-    setPlusHandler(() => () => setShowAddMember(true));
+    setPlusHandler(() => () => { setShowAddMember(true); inputRef.current?.focus(); });
     setCloseHandler(() => () => setShowAddMember(false));
     return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
@@ -123,7 +117,7 @@ export default function FamillePage() {
             <h3 className="font-semibold">Ajouter un membre</h3>
             <button onClick={() => setShowAddMember(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
           </div>
-          <AddFamilyForm onClose={() => setShowAddMember(false)} open={showAddMember} />
+          <AddFamilyForm onClose={() => setShowAddMember(false)} inputRef={inputRef} />
         </div>
       </div>
     </div>
