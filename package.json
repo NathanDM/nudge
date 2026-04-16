@@ -10,6 +10,9 @@
     "esbuild": "^0.25.0",
     "@esbuild-kit/core-utils": {
       "esbuild": "^0.25.0"
+    },
+    "@rollup/plugin-terser": {
+      "serialize-javascript": "^7.0.5"
     }
   },
   "scripts": {

@@ -60,6 +60,7 @@
     "drizzle-kit": "^0.31.0",
     "jest": "^30.3.0",
     "mute-stream": "^2.0.0",
+    "node-emoji": "^1.11.0",
     "safer-buffer": "^2.1.2",
     "ts-jest": "^29.4.9",
     "tsx": "^4.16.0",
