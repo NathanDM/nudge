@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import BottomNav from './BottomNav';
+import InstallBanner from './InstallBanner';
 
 export type AppShellContext = {
   setPlusHandler: (handler: (() => void) | null) => void;
@@ -28,6 +29,7 @@ export default function AppShell() {
       <main className="max-w-4xl mx-auto p-6">
         <Outlet context={context} />
       </main>
+      <InstallBanner />
       <BottomNav
         drawerOpen={drawerOpen}
         onPlusClick={() => plusHandler?.()}
