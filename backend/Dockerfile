@@ -13,9 +13,8 @@ FROM node:20-alpine
 RUN apk add --no-cache dumb-init
 WORKDIR /app
 
-# Copy full node_modules (devDeps kept because drizzle-kit is a devDep
-# required at runtime for migrations — it's at node_modules/.bin/drizzle-kit)
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/backend/node_modules ./backend/node_modules
 COPY --from=builder /app/backend/dist ./backend/dist
 
 # Migration files are NOT compiled by TypeScript — must copy explicitly
