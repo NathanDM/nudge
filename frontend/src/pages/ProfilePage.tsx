@@ -36,7 +36,6 @@ function AddChildForm({ onClose }: { onClose: () => void }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Prénom de l'enfant"
-          autoFocus
           className="border border-salmon/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-salmon"
           required
         />

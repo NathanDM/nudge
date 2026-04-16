@@ -35,7 +35,6 @@ function AddFamilyForm({ onClose }: { onClose: () => void }) {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Numéro de téléphone"
-          autoFocus
           className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
           required
         />
