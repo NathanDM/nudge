@@ -15,6 +15,9 @@
       "serialize-javascript": "^7.0.5"
     }
   },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2"
+  },
   "scripts": {
     "dev:backend": "npm run start:dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
