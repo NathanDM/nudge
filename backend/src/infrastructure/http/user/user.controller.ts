@@ -44,6 +44,11 @@ export class UserController {
     return this.userService.deleteChild(childId, req.user.id);
   }
 
+  @Delete('contacts/:contactId')
+  removeContact(@Req() req: AuthRequest, @Param('contactId') contactId: string) {
+    return this.userService.removeContact(req.user.id, contactId);
+  }
+
   @Patch('contacts/:contactId')
   updateContactType(
     @Req() req: AuthRequest,

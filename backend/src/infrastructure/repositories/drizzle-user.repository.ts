@@ -121,6 +121,12 @@ export class DrizzleUserRepository implements UserRepository {
     return result.length > 0;
   }
 
+  async removeContact(userId: string, contactId: string): Promise<void> {
+    await this.db
+      .delete(userContacts)
+      .where(and(eq(userContacts.userId, userId), eq(userContacts.contactId, contactId)));
+  }
+
   async addContact(userId: string, contactId: string, contactType: 'family' | 'friend' = 'friend'): Promise<void> {
     await this.db
       .insert(userContacts)

@@ -14,6 +14,7 @@ export interface UserRepository {
   findFriendContacts(userId: string): Promise<User[]>;
   updateContactType(userId: string, contactId: string, contactType: 'family' | 'friend'): Promise<boolean>;
   addContact(userId: string, contactId: string, contactType?: 'family' | 'friend'): Promise<void>;
+  removeContact(userId: string, contactId: string): Promise<void>;
   getShareToken(userId: string): Promise<string | null>;
   setShareToken(userId: string, token: string): Promise<void>;
   clearShareToken(userId: string): Promise<void>;

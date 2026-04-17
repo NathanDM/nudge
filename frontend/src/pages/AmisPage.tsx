@@ -57,11 +57,18 @@ export default function AmisPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const { data: friends = [], isLoading, isError } = useQuery<User[]>({
     queryKey: ['friends'],
     queryFn: () => apiClient.get('/users/friends').then((r) => r.data),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (contactId: string) => apiClient.delete(`/users/contacts/${contactId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['friends'] }),
   });
 
   useEffect(() => {
@@ -82,8 +89,15 @@ export default function AmisPage() {
     return <div className="text-center text-red-400 py-12">Impossible de charger les amis. Réessayez.</div>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Mes amis</h1>
+    <div onClick={() => editing && setEditing(false)}>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Mes amis</h1>
+        {editing && (
+          <button onClick={(e) => { e.stopPropagation(); setEditing(false); }} className="text-sm font-semibold text-active">
+            Terminer
+          </button>
+        )}
+      </div>
 
       <section>
         {friends.length === 0
@@ -101,12 +115,20 @@ export default function AmisPage() {
           )
           : (
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-              {friends.map((m) => <AvatarCard key={m.id} member={m} />)}
+              {friends.map((m) => (
+                <AvatarCard
+                  key={m.id}
+                  member={m}
+                  editing={editing}
+                  onRemove={() => removeMutation.mutate(m.id)}
+                  onLongPress={() => setEditing(true)}
+                />
+              ))}
               <button
-                onClick={openDrawer}
+                onClick={(e) => { e.stopPropagation(); setEditing(false); openDrawer(); }}
                 className="flex flex-col items-center gap-1 group outline-none"
               >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-sage group-focus-visible:ring-offset-2 shadow-sm group-hover:shadow-md bg-blush/10 text-blush border-2 border-dashed border-blush/30">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all group-hover:scale-105 shadow-sm group-hover:shadow-md bg-blush/10 text-blush border-2 border-dashed border-blush/30">
                   +
                 </div>
                 <span className="text-xs font-medium text-center leading-tight max-w-[72px] truncate text-gray-400">

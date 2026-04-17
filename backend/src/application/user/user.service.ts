@@ -45,6 +45,10 @@ export class UserService {
     if (!found) throw new NotFoundException('Contact introuvable');
   }
 
+  async removeContact(userId: string, contactId: string): Promise<void> {
+    await this.userRepo.removeContact(userId, contactId);
+  }
+
   async addContactByPhone(userId: string, phone: string, contactType: 'family' | 'friend' = 'friend'): Promise<Omit<User, 'pin'>> {
     const lastEight = phone.replace(/\D/g, '').slice(-8);
     const contact = await this.userRepo.findByPhone(lastEight);
