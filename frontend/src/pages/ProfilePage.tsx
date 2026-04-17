@@ -293,7 +293,7 @@ export default function ProfilePage() {
           <button
             onClick={handleGenerateShareToken}
             disabled={shareLoading}
-            className="text-sm bg-blush text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50"
+            className="text-sm bg-salmon text-white px-4 py-2 rounded-lg hover:bg-sage transition-colors disabled:opacity-50"
           >
             {shareLoading ? 'Génération...' : 'Générer un lien de partage'}
           </button>

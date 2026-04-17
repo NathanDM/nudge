@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useOutletContext, useNavigate } from 'react-router-dom';
+import { useParams, useOutletContext, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../api/client';
 import { Gift, User } from '../types';
@@ -12,6 +12,7 @@ export default function GiftListPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
   const isOwnList = user?.id === userId;
@@ -26,6 +27,13 @@ export default function GiftListPage() {
     queryFn: () => apiClient.get(`/users/${userId}/gifts`).then((r) => r.data),
     enabled: !!userId,
   });
+
+  useEffect(() => {
+    if (searchParams.get('addIdea') === 'true' && isOwnList) {
+      setIsDrawerOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, isOwnList, setSearchParams]);
 
   useEffect(() => {
     setPlusHandler(() => () => setIsDrawerOpen(true));

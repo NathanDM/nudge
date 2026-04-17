@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
+import { useAuth } from '../hooks/useAuth';
 
 function AddFriendForm({ onClose, inputRef }: { onClose: () => void; inputRef: React.RefObject<HTMLInputElement> }) {
   const [phone, setPhone] = useState('');
@@ -53,6 +54,8 @@ function AddFriendForm({ onClose, inputRef }: { onClose: () => void; inputRef: R
 
 export default function AmisPage() {
   const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [showAddFriend, setShowAddFriend] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,12 +65,15 @@ export default function AmisPage() {
   });
 
   useEffect(() => {
-    setPlusHandler(() => () => { setShowAddFriend(true); inputRef.current?.focus(); });
+    if (!user?.id) return;
+    setPlusHandler(() => () => navigate(`/user/${user.id}?addIdea=true`));
     setCloseHandler(() => () => setShowAddFriend(false));
     return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
-  }, [setPlusHandler, setCloseHandler, notifyDrawerOpen]);
+  }, [setPlusHandler, setCloseHandler, notifyDrawerOpen, navigate, user?.id]);
 
   useEffect(() => { notifyDrawerOpen(showAddFriend); }, [showAddFriend, notifyDrawerOpen]);
+
+  const openDrawer = () => { setShowAddFriend(true); inputRef.current?.focus(); };
 
   if (isLoading)
     return <div className="text-center text-sage py-12">Chargement...</div>;
@@ -86,7 +92,7 @@ export default function AmisPage() {
               <p className="text-base font-medium text-gray-700 mb-1">Pas encore d'ami ici.</p>
               <p className="text-sm text-gray-500 mb-4">Trouve quelqu'un à inviter.</p>
               <button
-                onClick={() => setShowAddFriend(true)}
+                onClick={openDrawer}
                 className="bg-sage text-white rounded-2xl px-6 py-3 text-sm font-semibold hover:bg-active transition-colors"
               >
                 Ajouter un ami
@@ -96,6 +102,17 @@ export default function AmisPage() {
           : (
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
               {friends.map((m) => <AvatarCard key={m.id} member={m} />)}
+              <button
+                onClick={openDrawer}
+                className="flex flex-col items-center gap-1 group outline-none"
+              >
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-sage group-focus-visible:ring-offset-2 shadow-sm group-hover:shadow-md bg-blush/10 text-blush border-2 border-dashed border-blush/30">
+                  +
+                </div>
+                <span className="text-xs font-medium text-center leading-tight max-w-[72px] truncate text-gray-400">
+                  Ajouter
+                </span>
+              </button>
             </div>
           )
         }

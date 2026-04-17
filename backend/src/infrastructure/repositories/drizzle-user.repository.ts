@@ -125,7 +125,10 @@ export class DrizzleUserRepository implements UserRepository {
     await this.db
       .insert(userContacts)
       .values({ userId, contactId, contactType })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [userContacts.userId, userContacts.contactId],
+        set: { contactType },
+      });
   }
 
   async findByShareToken(token: string): Promise<User | null> {
