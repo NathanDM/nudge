@@ -5,7 +5,32 @@ on:
     branches: [main]
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: TypeScript — backend
+        run: npm run build -w backend
+
+      - name: Tests — backend
+        run: npm run test -w backend
+
+      - name: TypeScript — frontend
+        run: cd frontend && npx tsc -b
+
+      - name: Tests — frontend
+        run: npm run test -w frontend
+
   build-and-push:
+    needs: [quality]
     runs-on: ubuntu-latest
     permissions:
       contents: read
