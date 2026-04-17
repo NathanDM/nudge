@@ -161,8 +161,23 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
             )}
 
             <div className="flex items-center justify-between mt-auto pt-3" onClick={(e) => e.stopPropagation()}>
-              {!isOwnList && <GuestFooter gift={gift} claimedByOther={claimedByOther} claimMutation={claimMutation} unclaimMutation={unclaimMutation} />}
-              {isOwnList && <OwnerFooter gift={gift} releaseAnonMutation={releaseAnonMutation} />}
+              {!isOwnList && (
+                <GuestFooter
+                  gift={gift}
+                  claimedByOther={claimedByOther}
+                  onClaim={() => claimMutation.mutate()}
+                  onUnclaim={() => unclaimMutation.mutate()}
+                  claimPending={claimMutation.isPending}
+                  unclaimPending={unclaimMutation.isPending}
+                />
+              )}
+              {isOwnList && (
+                <OwnerFooter
+                  gift={gift}
+                  onRelease={() => releaseAnonMutation.mutate()}
+                  releasePending={releaseAnonMutation.isPending}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -171,11 +186,13 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
   );
 }
 
-function GuestFooter({ gift, claimedByOther, claimMutation, unclaimMutation }: {
+function GuestFooter({ gift, claimedByOther, onClaim, onUnclaim, claimPending, unclaimPending }: {
   gift: Gift;
   claimedByOther: boolean;
-  claimMutation: ReturnType<typeof useMutation>;
-  unclaimMutation: ReturnType<typeof useMutation>;
+  onClaim: () => void;
+  onUnclaim: () => void;
+  claimPending: boolean;
+  unclaimPending: boolean;
 }) {
   return (
     <>
@@ -185,8 +202,8 @@ function GuestFooter({ gift, claimedByOther, claimMutation, unclaimMutation }: {
       </div>
       {gift.canClaim && (
         <button
-          onClick={() => claimMutation.mutate()}
-          disabled={claimMutation.isPending}
+          onClick={onClaim}
+          disabled={claimPending}
           className="flex items-center gap-1.5 bg-active text-white rounded-full px-4 py-1.5 text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           <CalendarIcon />
@@ -195,8 +212,8 @@ function GuestFooter({ gift, claimedByOther, claimMutation, unclaimMutation }: {
       )}
       {gift.canUnclaim && (
         <button
-          onClick={() => unclaimMutation.mutate()}
-          disabled={unclaimMutation.isPending}
+          onClick={onUnclaim}
+          disabled={unclaimPending}
           className="flex items-center gap-1.5 bg-blush/20 text-blush rounded-full px-4 py-1.5 text-xs font-semibold hover:bg-blush/30 transition-colors disabled:opacity-50"
         >
           <CalendarIcon />
@@ -213,9 +230,10 @@ function GuestFooter({ gift, claimedByOther, claimMutation, unclaimMutation }: {
   );
 }
 
-function OwnerFooter({ gift, releaseAnonMutation }: {
+function OwnerFooter({ gift, onRelease, releasePending }: {
   gift: Gift;
-  releaseAnonMutation: ReturnType<typeof useMutation>;
+  onRelease: () => void;
+  releasePending: boolean;
 }) {
   if (gift.claimedByName)
     return <span className="text-xs text-gray-400">Réservé par {gift.claimedByName}</span>;
@@ -225,8 +243,8 @@ function OwnerFooter({ gift, releaseAnonMutation }: {
       <>
         <span className="text-xs text-gray-400">Quelqu'un s'en occupe (anonyme)</span>
         <button
-          onClick={() => releaseAnonMutation.mutate()}
-          disabled={releaseAnonMutation.isPending}
+          onClick={onRelease}
+          disabled={releasePending}
           className="text-xs text-blush hover:text-sage transition-colors disabled:opacity-50"
         >
           Libérer
