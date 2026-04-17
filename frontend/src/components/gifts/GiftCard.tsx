@@ -10,7 +10,7 @@ interface Props {
 
 function CalendarIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
     </svg>
   );
@@ -18,9 +18,17 @@ function CalendarIcon() {
 
 function TrashIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
     </svg>
+  );
+}
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <div className="w-6 h-6 rounded-full bg-blush flex items-center justify-center text-xs font-semibold text-white shrink-0">
+      {name[0]?.toUpperCase() ?? '?'}
+    </div>
   );
 }
 
@@ -55,94 +63,110 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
       className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-opacity ${claimedByOther ? 'opacity-55' : ''} ${gift.url ? 'cursor-pointer' : ''}`}
       onClick={() => gift.url && window.open(gift.url, '_blank', 'noopener,noreferrer')}
     >
-      <div className="p-5">
-        <div className="flex gap-3 items-start">
+      <div className="flex gap-4 p-4">
+        <div className="w-20 h-20 rounded-xl shrink-0 overflow-hidden bg-sand">
           {gift.ogImageUrl && (
-            <img
-              src={gift.ogImageUrl}
-              alt=""
-              className="w-16 h-16 rounded-lg object-cover shrink-0"
-            />
+            <img src={gift.ogImageUrl} alt="" className="w-full h-full object-cover" />
           )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="font-bold text-base leading-snug">{gift.title}</h3>
+        </div>
+
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-bold text-sm leading-snug">{gift.title}</h3>
+            <div className="flex items-center gap-2 shrink-0">
+              {priceDisplay && (
+                <span className="text-active font-bold text-base">{priceDisplay}</span>
+              )}
               {gift.canDelete && (
                 <button
                   onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
                   disabled={deleteMutation.isPending}
-                  className="text-gray-300 hover:text-red-400 transition-colors p-0.5 shrink-0 mt-0.5"
+                  className="text-gray-300 hover:text-red-400 transition-colors p-0.5"
                   aria-label="Supprimer"
                 >
                   <TrashIcon />
                 </button>
               )}
             </div>
+          </div>
 
-            {gift.description && (
-              <p className="text-sm text-gray-400 leading-relaxed">{gift.description}</p>
-            )}
+          {gift.description && (
+            <p className="text-xs text-gray-400 leading-relaxed mt-1 line-clamp-2">{gift.description}</p>
+          )}
 
-            <div className="flex items-end justify-between mt-4">
-              {priceDisplay
-                ? <span className="text-xl font-bold tracking-tight">{priceDisplay}</span>
-                : <span />
-              }
-              {!isOwnList && (
-                <span className="text-xs text-gray-400">par {gift.addedByName}</span>
-              )}
-            </div>
+          <div className="flex items-center justify-between mt-auto pt-3" onClick={(e) => e.stopPropagation()}>
+            {!isOwnList && <GuestFooter gift={gift} claimedByOther={claimedByOther} claimMutation={claimMutation} unclaimMutation={unclaimMutation} />}
+            {isOwnList && <OwnerFooter gift={gift} releaseAnonMutation={releaseAnonMutation} />}
           </div>
         </div>
       </div>
-
-      {!isOwnList && (
-        <div className="px-5 pb-5">
-          {gift.canClaim && (
-            <button
-              onClick={(e) => { e.stopPropagation(); claimMutation.mutate(); }}
-              disabled={claimMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-salmon text-white rounded-xl py-3 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              <CalendarIcon />
-              Réserver
-            </button>
-          )}
-          {gift.canUnclaim && (
-            <button
-              onClick={(e) => { e.stopPropagation(); unclaimMutation.mutate(); }}
-              disabled={unclaimMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-blush/20 text-blush rounded-xl py-3 font-medium hover:bg-blush/30 transition-colors disabled:opacity-50"
-            >
-              <CalendarIcon />
-              Annuler la réservation
-            </button>
-          )}
-          {claimedByOther && (
-            <div className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-400 rounded-xl py-3 font-medium">
-              <CalendarIcon />
-              Déjà réservé
-            </div>
-          )}
-        </div>
-      )}
-      {isOwnList && gift.claimedByName && (
-        <div className="px-5 pb-5">
-          <span className="text-xs text-gray-400">Réservé par {gift.claimedByName}</span>
-        </div>
-      )}
-      {isOwnList && gift.claimedAnonymously && (
-        <div className="px-5 pb-5 flex items-center justify-between">
-          <span className="text-xs text-gray-400">Quelqu'un s'en occupe (anonyme)</span>
-          <button
-            onClick={(e) => { e.stopPropagation(); releaseAnonMutation.mutate(); }}
-            disabled={releaseAnonMutation.isPending}
-            className="text-xs text-blush hover:text-sage transition-colors disabled:opacity-50"
-          >
-            Libérer
-          </button>
-        </div>
-      )}
     </div>
   );
+}
+
+function GuestFooter({ gift, claimedByOther, claimMutation, unclaimMutation }: {
+  gift: Gift;
+  claimedByOther: boolean;
+  claimMutation: ReturnType<typeof useMutation>;
+  unclaimMutation: ReturnType<typeof useMutation>;
+}) {
+  return (
+    <>
+      <div className="flex items-center gap-1.5">
+        <Avatar name={gift.addedByName} />
+        <span className="text-xs text-gray-400">{gift.addedByName}</span>
+      </div>
+
+      {gift.canClaim && (
+        <button
+          onClick={() => claimMutation.mutate()}
+          disabled={claimMutation.isPending}
+          className="flex items-center gap-1.5 bg-active text-white rounded-full px-4 py-1.5 text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+        >
+          <CalendarIcon />
+          Réserver
+        </button>
+      )}
+      {gift.canUnclaim && (
+        <button
+          onClick={() => unclaimMutation.mutate()}
+          disabled={unclaimMutation.isPending}
+          className="flex items-center gap-1.5 bg-blush/20 text-blush rounded-full px-4 py-1.5 text-xs font-semibold hover:bg-blush/30 transition-colors disabled:opacity-50"
+        >
+          <CalendarIcon />
+          Annuler
+        </button>
+      )}
+      {claimedByOther && (
+        <span className="flex items-center gap-1.5 bg-gray-100 text-gray-400 rounded-full px-4 py-1.5 text-xs font-semibold">
+          <CalendarIcon />
+          Réservé
+        </span>
+      )}
+    </>
+  );
+}
+
+function OwnerFooter({ gift, releaseAnonMutation }: {
+  gift: Gift;
+  releaseAnonMutation: ReturnType<typeof useMutation>;
+}) {
+  if (gift.claimedByName)
+    return <span className="text-xs text-gray-400">Réservé par {gift.claimedByName}</span>;
+
+  if (gift.claimedAnonymously)
+    return (
+      <>
+        <span className="text-xs text-gray-400">Quelqu'un s'en occupe (anonyme)</span>
+        <button
+          onClick={() => releaseAnonMutation.mutate()}
+          disabled={releaseAnonMutation.isPending}
+          className="text-xs text-blush hover:text-sage transition-colors disabled:opacity-50"
+        >
+          Libérer
+        </button>
+      </>
+    );
+
+  return null;
 }
