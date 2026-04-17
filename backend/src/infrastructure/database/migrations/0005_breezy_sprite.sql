@@ -1,0 +1,1 @@
+ALTER TABLE "gift_ideas" ADD COLUMN "og_image_url" varchar(1000);

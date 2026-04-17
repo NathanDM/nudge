@@ -16,6 +16,7 @@ const makeGift = (overrides: Partial<{
     overrides.claimedByUserId ?? null,
     null,
     overrides.claimedAnonymously ?? false,
+    null,
     new Date(),
   );
 

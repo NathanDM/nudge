@@ -48,10 +48,9 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
     >
         <input
           type="text"
-          placeholder="Titre *"
+          placeholder={url ? 'Titre (optionnel si URL)' : 'Titre *'}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
           className="w-full border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
         />
         <input
@@ -81,7 +80,7 @@ export default function AddGiftForm({ forUserId, onSuccess }: Props) {
         </div>
         <button
           type="submit"
-          disabled={!title || mutation.isPending}
+          disabled={(!title && !url) || mutation.isPending}
           className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50"
         >
           {mutation.isPending ? 'Ajout...' : 'Ajouter'}

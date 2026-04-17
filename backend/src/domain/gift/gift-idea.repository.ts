@@ -12,6 +12,7 @@ export interface GiftIdeaRepository {
     description?: string | null;
     url?: string | null;
     price?: number | null;
+    ogImageUrl?: string | null;
   }): Promise<GiftIdea>;
   delete(id: string): Promise<void>;
   claim(id: string, claimedByUserId: string): Promise<GiftIdea>;

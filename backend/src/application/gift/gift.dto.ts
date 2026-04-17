@@ -7,6 +7,7 @@ export class GiftResponseDto {
   description: string | null;
   url: string | null;
   price: number | null;
+  ogImageUrl: string | null;
   claimedByUserId?: string | null;
   claimedAt?: Date | null;
   claimedAnonymously?: boolean;

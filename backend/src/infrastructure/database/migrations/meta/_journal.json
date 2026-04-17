@@ -36,6 +36,13 @@
       "when": 1776246339335,
       "tag": "0004_small_surge",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776416412225,
+      "tag": "0005_breezy_sprite",
+      "breakpoints": true
     }
   ]
 }

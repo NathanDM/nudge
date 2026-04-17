@@ -56,32 +56,43 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
       onClick={() => gift.url && window.open(gift.url, '_blank', 'noopener,noreferrer')}
     >
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-bold text-base leading-snug">{gift.title}</h3>
-          {gift.canDelete && (
-            <button
-              onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
-              disabled={deleteMutation.isPending}
-              className="text-gray-300 hover:text-red-400 transition-colors p-0.5 shrink-0 mt-0.5"
-              aria-label="Supprimer"
-            >
-              <TrashIcon />
-            </button>
+        <div className="flex gap-3 items-start">
+          {gift.ogImageUrl && (
+            <img
+              src={gift.ogImageUrl}
+              alt=""
+              className="w-16 h-16 rounded-lg object-cover shrink-0"
+            />
           )}
-        </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="font-bold text-base leading-snug">{gift.title}</h3>
+              {gift.canDelete && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
+                  disabled={deleteMutation.isPending}
+                  className="text-gray-300 hover:text-red-400 transition-colors p-0.5 shrink-0 mt-0.5"
+                  aria-label="Supprimer"
+                >
+                  <TrashIcon />
+                </button>
+              )}
+            </div>
 
-        {gift.description && (
-          <p className="text-sm text-gray-400 leading-relaxed">{gift.description}</p>
-        )}
+            {gift.description && (
+              <p className="text-sm text-gray-400 leading-relaxed">{gift.description}</p>
+            )}
 
-        <div className="flex items-end justify-between mt-4">
-          {priceDisplay
-            ? <span className="text-xl font-bold tracking-tight">{priceDisplay}</span>
-            : <span />
-          }
-          {!isOwnList && (
-            <span className="text-xs text-gray-400">par {gift.addedByName}</span>
-          )}
+            <div className="flex items-end justify-between mt-4">
+              {priceDisplay
+                ? <span className="text-xl font-bold tracking-tight">{priceDisplay}</span>
+                : <span />
+              }
+              {!isOwnList && (
+                <span className="text-xs text-gray-400">par {gift.addedByName}</span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

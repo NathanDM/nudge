@@ -13,6 +13,34 @@ import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.reposito
 import { GiftResponseDto } from './gift.dto';
 import { CreateGiftDto } from './create-gift.dto';
 
+type OgData = { imageUrl: string | null; title: string | null; price: number | null };
+
+function extractMeta(html: string, property: string): string | null {
+  const p = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return (
+    html.match(new RegExp(`<meta[^>]+property=["']${p}["'][^>]+content=["']([^"']+)["']`, 'i'))?.[1] ??
+    html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${p}["']`, 'i'))?.[1] ??
+    null
+  );
+}
+
+async function fetchOgData(url: string): Promise<OgData> {
+  try {
+    const res = await Promise.race([
+      fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Nudge/1.0)' } }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ]);
+    const html = await (res as Response).text();
+    const imageUrl = extractMeta(html, 'og:image');
+    const title = extractMeta(html, 'og:title');
+    const priceStr = extractMeta(html, 'product:price:amount') ?? extractMeta(html, 'og:price:amount');
+    const parsed = priceStr ? Math.round(parseFloat(priceStr) * 100) : null;
+    return { imageUrl, title, price: parsed !== null && !isNaN(parsed) ? parsed : null };
+  } catch {
+    return { imageUrl: null, title: null, price: null };
+  }
+}
+
 @Injectable()
 export class GiftService {
   constructor(
@@ -40,6 +68,7 @@ export class GiftService {
           description: g.description,
           url: g.url,
           price: g.price,
+          ogImageUrl: g.ogImageUrl,
           claimedByName: g.claimedByName,
           claimedAnonymously: g.claimedAnonymously,
           canDelete: true,
@@ -56,6 +85,7 @@ export class GiftService {
       description: g.description,
       url: g.url,
       price: g.price,
+      ogImageUrl: g.ogImageUrl,
       claimedByUserId: g.claimedByUserId,
       claimedAt: g.claimedAt,
       canClaim: g.canBeClaimedBy(viewerId),
@@ -70,13 +100,17 @@ export class GiftService {
     addedByUserId: string,
     dto: CreateGiftDto,
   ) {
+    const og = dto.url ? await fetchOgData(dto.url) : { imageUrl: null, title: null, price: null };
+    const title = dto.title || og.title;
+    if (!title) throw new BadRequestException('Titre requis');
     return this.giftRepo.create({
       forUserId,
       addedByUserId,
-      title: dto.title,
+      title,
       description: dto.description,
       url: dto.url,
-      price: dto.price,
+      price: dto.price ?? og.price,
+      ogImageUrl: og.imageUrl,
     });
   }
 

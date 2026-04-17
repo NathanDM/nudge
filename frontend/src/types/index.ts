@@ -13,6 +13,7 @@ export interface Gift {
   description: string | null;
   url: string | null;
   price: number | null;
+  ogImageUrl: string | null;
   claimedByUserId?: string | null;
   claimedByName?: string | null;
   claimedAt?: string | null;

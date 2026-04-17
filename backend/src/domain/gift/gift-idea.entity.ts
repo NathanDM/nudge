@@ -10,6 +10,7 @@ export class GiftIdea {
     public readonly claimedByUserId: string | null,
     public readonly claimedAt: Date | null,
     public readonly claimedAnonymously: boolean,
+    public readonly ogImageUrl: string | null,
     public readonly createdAt: Date,
   ) {}
 
