@@ -24,6 +24,27 @@ function extractMeta(html: string, property: string): string | null {
   );
 }
 
+function extractLdJson(html: string): { title: string | null; price: number | null; imageUrl: string | null } {
+  const matches = html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  for (const [, raw] of matches) {
+    try {
+      const data = JSON.parse(raw);
+      const entries = Array.isArray(data) ? data : [data];
+      for (const entry of entries) {
+        const type = entry['@type'];
+        if (!['Product', 'ItemPage', 'WebPage'].includes(type)) continue;
+        const title = entry.name ?? null;
+        const priceStr = entry.offers?.price ?? entry.offers?.[0]?.price ?? null;
+        const parsed = priceStr ? Math.round(parseFloat(String(priceStr)) * 100) : null;
+        const price = parsed !== null && !isNaN(parsed) ? parsed : null;
+        const imageUrl = typeof entry.image === 'string' ? entry.image : entry.image?.[0] ?? null;
+        if (title || price) return { title, price, imageUrl };
+      }
+    } catch { /* skip malformed */ }
+  }
+  return { title: null, price: null, imageUrl: null };
+}
+
 async function fetchOgData(url: string): Promise<OgData> {
   try {
     const res = await Promise.race([
@@ -35,7 +56,14 @@ async function fetchOgData(url: string): Promise<OgData> {
     const title = extractMeta(html, 'og:title');
     const priceStr = extractMeta(html, 'product:price:amount') ?? extractMeta(html, 'og:price:amount');
     const parsed = priceStr ? Math.round(parseFloat(priceStr) * 100) : null;
-    return { imageUrl, title, price: parsed !== null && !isNaN(parsed) ? parsed : null };
+    const ogPrice = parsed !== null && !isNaN(parsed) ? parsed : null;
+    if (title && ogPrice) return { imageUrl, title, price: ogPrice };
+    const ld = extractLdJson(html);
+    return {
+      imageUrl: imageUrl ?? ld.imageUrl,
+      title: title ?? ld.title,
+      price: ogPrice ?? ld.price,
+    };
   } catch {
     return { imageUrl: null, title: null, price: null };
   }
