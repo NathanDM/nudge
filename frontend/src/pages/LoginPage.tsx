@@ -79,9 +79,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="flex bg-white rounded-2xl p-1 mb-5" style={{ border: '1px solid var(--line)' }}>
+        <div role="tablist" className="flex bg-white rounded-2xl p-1 mb-5" style={{ border: '1px solid var(--line)' }}>
           {([['register', 'Créer mon compte'], ['login', 'Se connecter']] as const).map(([k, l]) => (
-            <button key={k} onClick={() => switchMode(k)}
+            <button key={k} role="tab" aria-selected={mode === k} onClick={() => switchMode(k)}
               className="flex-1 py-2.5 text-[12px] font-bold rounded-xl transition"
               style={{ background: mode === k ? 'var(--sage)' : 'transparent', color: mode === k ? '#fff' : 'var(--ink-soft)' }}>
               {l}
