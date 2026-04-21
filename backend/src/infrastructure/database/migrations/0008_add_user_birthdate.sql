@@ -1,1 +1,1 @@
-ALTER TABLE "users" ADD COLUMN "birthdate" date;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "birthdate" date;
