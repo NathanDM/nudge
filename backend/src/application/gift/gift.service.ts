@@ -45,12 +45,61 @@ function extractLdJson(html: string): { title: string | null; price: number | nu
   return { title: null, price: null, imageUrl: null };
 }
 
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Cache-Control': 'no-cache',
+};
+
+function shopifyJsonUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const match = u.pathname.match(/^(\/products\/[^/?#]+)/);
+    if (!match) return null;
+    return `${u.origin}${match[1]}.json`;
+  } catch { return null; }
+}
+
+function variantId(url: string): string | null {
+  try { return new URL(url).searchParams.get('variant'); } catch { return null; }
+}
+
+async function fetchShopifyJson(url: string): Promise<OgData> {
+  const jsonUrl = shopifyJsonUrl(url);
+  if (!jsonUrl) return { imageUrl: null, title: null, price: null };
+  const res = await fetch(jsonUrl, { headers: BROWSER_HEADERS });
+  if (!res.ok) return { imageUrl: null, title: null, price: null };
+  const { product } = await res.json() as { product: { title: string; images: { src: string }[]; variants: { id: number; price: string }[] } };
+  if (!product) return { imageUrl: null, title: null, price: null };
+  const vid = variantId(url);
+  const variant = vid ? product.variants.find((v) => String(v.id) === vid) : product.variants[0];
+  const price = variant ? Math.round(parseFloat(variant.price) * 100) : null;
+  return {
+    title: product.title ?? null,
+    imageUrl: product.images?.[0]?.src ?? null,
+    price,
+  };
+}
+
 async function fetchOgData(url: string): Promise<OgData> {
   try {
+    const isShopify = /\/products\/[^/?#]+/.test(new URL(url).pathname);
+
+    if (isShopify) {
+      const shopify = await Promise.race([
+        fetchShopifyJson(url),
+        new Promise<OgData>((resolve) => setTimeout(() => resolve({ imageUrl: null, title: null, price: null }), 5000)),
+      ]);
+      if (shopify.title) return shopify;
+    }
+
     const res = await Promise.race([
-      fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Nudge/1.0)' } }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      fetch(url, { headers: BROWSER_HEADERS }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
+    if (!(res as Response).ok) return { imageUrl: null, title: null, price: null };
     const html = await (res as Response).text();
     const imageUrl = extractMeta(html, 'og:image');
     const title = extractMeta(html, 'og:title');
