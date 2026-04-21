@@ -3,7 +3,7 @@ import { randomBytes } from 'crypto';
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
 import { User } from '../../domain/user/user.entity';
 
-type PublicUser = { id: string; name: string; managedBy: string | null };
+type PublicUser = { id: string; name: string; managedBy: string | null; birthdate?: string | null };
 
 const VALID_CONTACT_TYPES = ['family', 'friend'] as const;
 
@@ -13,17 +13,17 @@ export class UserService {
 
   async getChildren(userId: string): Promise<PublicUser[]> {
     const children = await this.userRepo.findChildren(userId);
-    return children.map(({ id, name, managedBy }) => ({ id, name, managedBy }));
+    return children.map(({ id, name, managedBy, birthdate }) => ({ id, name, managedBy, birthdate }));
   }
 
   async getFamilyContacts(userId: string): Promise<PublicUser[]> {
     const contacts = await this.userRepo.findFamilyContacts(userId);
-    return contacts.map(({ id, name, managedBy }) => ({ id, name, managedBy }));
+    return contacts.map(({ id, name, managedBy, birthdate }) => ({ id, name, managedBy, birthdate }));
   }
 
   async getFriendContacts(userId: string): Promise<PublicUser[]> {
     const contacts = await this.userRepo.findFriendContacts(userId);
-    return contacts.map(({ id, name, managedBy }) => ({ id, name, managedBy }));
+    return contacts.map(({ id, name, managedBy, birthdate }) => ({ id, name, managedBy, birthdate }));
   }
 
   async createChild(name: string, parentId: string): Promise<PublicUser> {
@@ -93,5 +93,23 @@ export class UserService {
     if (!child || child.managedBy !== parentId) throw new ForbiddenException('Accès refusé');
     await this.userRepo.clearShareToken(childId);
     return { success: true };
+  }
+
+  async getProfile(userId: string): Promise<{ id: string; name: string; phone: string | null; birthdate: string | null }> {
+    const user = await this.userRepo.findById(userId);
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    return { id: user.id, name: user.name, phone: user.phone, birthdate: user.birthdate };
+  }
+
+  async updateBirthdate(userId: string, birthdate: string | null): Promise<{ birthdate: string | null }> {
+    await this.userRepo.updateBirthdate(userId, birthdate);
+    return { birthdate };
+  }
+
+  async updateChildBirthdate(childId: string, parentId: string, birthdate: string | null): Promise<{ birthdate: string | null }> {
+    const child = await this.userRepo.findById(childId);
+    if (!child || child.managedBy !== parentId) throw new ForbiddenException('Accès refusé');
+    await this.userRepo.updateBirthdate(childId, birthdate);
+    return { birthdate };
   }
 }

@@ -86,7 +86,7 @@ export class GiftService {
 
     if (viewerId === forUserId) {
       return gifts
-        .filter((g) => g.addedByUserId === viewerId)
+        .filter((g) => !g.secret)
         .map((g) => ({
           id: g.id,
           forUserId: g.forUserId,
@@ -99,7 +99,8 @@ export class GiftService {
           ogImageUrl: g.ogImageUrl,
           claimedByName: g.claimedByName,
           claimedAnonymously: g.claimedAnonymously,
-          canDelete: true,
+          canDelete: g.canBeDeletedBy(viewerId),
+          secret: false,
           createdAt: g.createdAt,
         }));
     }
@@ -119,6 +120,7 @@ export class GiftService {
       canClaim: g.canBeClaimedBy(viewerId),
       canUnclaim: g.canBeUnclaimedBy(viewerId),
       canDelete: g.canBeDeletedBy(viewerId),
+      secret: g.secret,
       createdAt: g.createdAt,
     }));
   }
@@ -139,6 +141,7 @@ export class GiftService {
       url: dto.url,
       price: dto.price ?? og.price,
       ogImageUrl: og.imageUrl,
+      secret: dto.secret ?? false,
     });
   }
 

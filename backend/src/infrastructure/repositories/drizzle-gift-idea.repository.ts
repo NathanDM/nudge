@@ -24,6 +24,7 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
       row.claimedAnonymously,
       row.ogImageUrl ?? null,
       row.createdAt,
+      row.secret,
     );
   }
 
@@ -58,6 +59,7 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
     url?: string | null;
     price?: number | null;
     ogImageUrl?: string | null;
+    secret?: boolean;
   }): Promise<GiftIdea> {
     const [row] = await this.db.insert(giftIdeas).values(data).returning();
     return this.toEntity(row);

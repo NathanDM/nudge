@@ -1,64 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import apiClient from '../api/client';
 import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
-import { useAuth } from '../hooks/useAuth';
+import { BirthdayStrip } from '../components/home/BirthdayStrip';
 
-function AddFriendForm({ onClose, inputRef }: { onClose: () => void; inputRef: React.RefObject<HTMLInputElement> }) {
-  const [phone, setPhone] = useState('');
-  const [error, setError] = useState('');
-  const queryClient = useQueryClient();
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: (phone: string) => apiClient.post('/users/contacts', { phone }).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['friends'] });
-      onClose();
-    },
-    onError: () => setError('Numéro introuvable'),
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    mutate(phone);
-  };
-
+function AddCard({ onClick }: { onClick: () => void }) {
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-start">
-      <div className="flex flex-col gap-1 flex-1">
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          ref={inputRef}
-          placeholder="Numéro de téléphone"
-          className="border border-blush/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blush"
-          required
-        />
-        {error && <span className="text-red-500 text-xs">{error}</span>}
+    <button onClick={onClick} className="flex flex-col items-center gap-1.5 p-2 rounded-2xl active:scale-[0.97] transition">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center"
+           style={{ background: 'rgba(238,215,207,0.25)', border: '1.8px dashed rgba(238,215,207,0.9)', color: 'var(--salmon)' }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
       </div>
-      <button
-        type="submit"
-        disabled={!phone || isPending}
-        className="bg-blush text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sage transition-colors disabled:opacity-50"
-      >
-        Ajouter
-      </button>
-    </form>
+      <div className="text-[12px] font-bold" style={{ color: 'var(--ink-soft)' }}>Inviter</div>
+    </button>
   );
 }
 
 export default function AmisPage() {
-  const { setPlusHandler, setCloseHandler, notifyDrawerOpen } = useOutletContext<AppShellContext>();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [showAddFriend, setShowAddFriend] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { setCloseHandler, notifyDrawerOpen, openInvitePicker } = useOutletContext<AppShellContext>();
   const queryClient = useQueryClient();
 
   const { data: friends = [], isLoading, isError } = useQuery<User[]>({
@@ -72,91 +36,60 @@ export default function AmisPage() {
   });
 
   useEffect(() => {
-    if (!user?.id) return;
-    setPlusHandler(() => () => navigate(`/user/${user.id}?addIdea=true`));
-    setCloseHandler(() => () => setShowAddFriend(false));
-    return () => { setPlusHandler(null); setCloseHandler(null); notifyDrawerOpen(false); };
-  }, [setPlusHandler, setCloseHandler, notifyDrawerOpen, navigate, user?.id]);
-
-  useEffect(() => { notifyDrawerOpen(showAddFriend); }, [showAddFriend, notifyDrawerOpen]);
-
-  const openDrawer = () => { setShowAddFriend(true); inputRef.current?.focus(); };
+    setCloseHandler(null);
+    notifyDrawerOpen(false);
+    return () => { setCloseHandler(null); notifyDrawerOpen(false); };
+  }, [setCloseHandler, notifyDrawerOpen]);
 
   if (isLoading)
-    return <div className="text-center text-sage py-12">Chargement...</div>;
+    return <div className="px-5 pt-16 text-center text-sm font-semibold" style={{ color: 'var(--ink-mute)' }}>Chargement…</div>;
 
   if (isError)
-    return <div className="text-center text-red-400 py-12">Impossible de charger les amis. Réessayez.</div>;
+    return <div className="px-5 pt-16 text-center text-red-400 text-sm">Impossible de charger les amis. Réessayez.</div>;
+
+  if (friends.length === 0) {
+    return (
+      <div className="pt-2 pb-4">
+        <div className="px-5 pt-3 pb-2">
+          <h1 className="display text-[28px] font-black leading-tight" style={{ color: 'var(--ink)' }}>Mes amis</h1>
+        </div>
+        <div className="px-5 mt-10 flex flex-col items-center text-center">
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(165,200,191,.2)' }}>
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--active)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.4 3.1-5.5 6-5.5s5.5 2.1 6 5.5"/>
+              <path d="M16 4.2a3.5 3.5 0 0 1 0 6.6"/><path d="M21 20c-.3-2.5-1.7-4.3-3.8-5.1"/>
+            </svg>
+          </div>
+          <h2 className="display text-[22px] font-bold mb-1" style={{ color: 'var(--ink)' }}>Pas encore d'ami ici.</h2>
+          <p className="text-[13px] mb-5 max-w-[260px]" style={{ color: 'var(--ink-soft)' }}>
+            Invite quelqu'un avec un lien ou un numéro, et commencez à partager vos listes.
+          </p>
+          <button onClick={() => openInvitePicker('friend')}
+            className="px-5 py-3.5 rounded-2xl font-bold text-white transition active:scale-[0.98]"
+            style={{ background: 'var(--sage)' }}>
+            Inviter un ami
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div onClick={() => editing && setEditing(false)}>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Mes amis</h1>
-        {editing && (
-          <button onClick={(e) => { e.stopPropagation(); setEditing(false); }} className="text-sm font-semibold text-active">
-            Terminer
-          </button>
-        )}
+    <div className="pt-2 pb-4">
+      <div className="px-5 pt-3 pb-2">
+        <h1 className="display text-[28px] font-black leading-tight" style={{ color: 'var(--ink)' }}>Mes amis</h1>
       </div>
+      <BirthdayStrip contacts={friends}/>
 
-      <section>
-        {friends.length === 0
-          ? (
-            <div className="text-center py-10">
-              <p className="text-base font-medium text-gray-700 mb-1">Pas encore d'ami ici.</p>
-              <p className="text-sm text-gray-500 mb-4">Trouve quelqu'un à inviter.</p>
-              <button
-                onClick={openDrawer}
-                className="bg-sage text-white rounded-2xl px-6 py-3 text-sm font-semibold hover:bg-active transition-colors"
-              >
-                Ajouter un ami
-              </button>
-            </div>
-          )
-          : (
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
-              {friends.map((m) => (
-                <AvatarCard
-                  key={m.id}
-                  member={m}
-                  editing={editing}
-                  onRemove={() => removeMutation.mutate(m.id)}
-                  onLongPress={() => setEditing(true)}
-                />
-              ))}
-              <button
-                onClick={(e) => { e.stopPropagation(); setEditing(false); openDrawer(); }}
-                className="flex flex-col items-center gap-1 group outline-none"
-              >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all group-hover:scale-105 shadow-sm group-hover:shadow-md bg-blush/10 text-blush border-2 border-dashed border-blush/30">
-                  +
-                </div>
-                <span className="text-xs font-medium text-center leading-tight max-w-[72px] truncate text-gray-400">
-                  Ajouter
-                </span>
-              </button>
-            </div>
-          )
-        }
-      </section>
-
-      <div
-        className={`fixed inset-0 z-40 transition-opacity duration-300 ${
-          showAddFriend ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddFriend(false)} />
-        <div
-          className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl px-5 pt-4 pb-24 transition-transform duration-300 ${
-            showAddFriend ? 'translate-y-0' : 'translate-y-full'
-          }`}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold">Ajouter un ami</h3>
-            <button onClick={() => setShowAddFriend(false)} className="p-2 text-blush hover:text-sage transition-colors" aria-label="Fermer">✕</button>
-          </div>
-          <AddFriendForm onClose={() => setShowAddFriend(false)} inputRef={inputRef} />
-        </div>
+      <div className="px-5 flex items-baseline justify-between mt-5 mb-2">
+        <div className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-soft)' }}>Cercle proche</div>
+        <div className="text-[11px]" style={{ color: 'var(--ink-mute)' }}>{friends.length} ami{friends.length > 1 ? 's' : ''}</div>
+      </div>
+      <div className="px-4 grid grid-cols-4 gap-y-3 gap-x-1">
+        {friends.map((m) => (
+          <AvatarCard key={m.id} member={m} onRemove={() => removeMutation.mutate(m.id)}/>
+        ))}
+        <AddCard onClick={() => openInvitePicker('friend')}/>
       </div>
     </div>
   );

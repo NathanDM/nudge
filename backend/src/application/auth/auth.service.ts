@@ -22,7 +22,7 @@ export class AuthService {
     if (!user || !pinMatches) throw new UnauthorizedException('Invalid credentials');
     const payload = { sub: user.id, name: user.name };
     const accessToken = this.jwtService.sign(payload);
-    return { accessToken, user: { id: user.id, name: user.name } };
+    return { accessToken, user: { id: user.id, name: user.name, phone: user.phone ?? '' } };
   }
 
   async register(name: string, phone: string, pin: string): Promise<LoginResponseDto> {
@@ -33,6 +33,6 @@ export class AuthService {
     const user = await this.userRepo.create(name, phone, hashedPin);
     const payload = { sub: user.id, name: user.name };
     const accessToken = this.jwtService.sign(payload);
-    return { accessToken, user: { id: user.id, name: user.name } };
+    return { accessToken, user: { id: user.id, name: user.name, phone: user.phone ?? '' } };
   }
 }

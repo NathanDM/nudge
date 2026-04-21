@@ -3,10 +3,10 @@ import { eq, sql, and } from 'drizzle-orm';
 import { UserRepository } from '../../domain/user/user.repository';
 import { User } from '../../domain/user/user.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
-import { users, userContacts } from '../database/schema';
+import { users, userContacts, giftIdeas } from '../database/schema';
 
-const toUser = (r: { id: string; name: string; phone?: string | null; pin?: string | null; managedBy?: string | null; createdAt?: Date }): User =>
-  new User(r.id, r.name, r.phone ?? null, r.pin ?? null, r.managedBy ?? null, r.createdAt ?? new Date());
+const toUser = (r: { id: string; name: string; phone?: string | null; pin?: string | null; managedBy?: string | null; createdAt?: Date; birthdate?: string | null }): User =>
+  new User(r.id, r.name, r.phone ?? null, r.pin ?? null, r.managedBy ?? null, r.createdAt ?? new Date(), r.birthdate ?? null);
 
 @Injectable()
 export class DrizzleUserRepository implements UserRepository {
@@ -52,7 +52,12 @@ export class DrizzleUserRepository implements UserRepository {
     const child = await this.findById(childId);
     if (!child) return 'not_found';
     if (child.managedBy !== userId) return 'forbidden';
-    await this.db.delete(users).where(eq(users.id, childId));
+    await this.db.transaction(async (tx) => {
+      await tx.delete(giftIdeas).where(eq(giftIdeas.forUserId, childId));
+      await tx.delete(userContacts).where(eq(userContacts.userId, childId));
+      await tx.delete(userContacts).where(eq(userContacts.contactId, childId));
+      await tx.delete(users).where(eq(users.id, childId));
+    });
     return 'ok';
   }
 
@@ -68,7 +73,7 @@ export class DrizzleUserRepository implements UserRepository {
 
   async findFamilyContacts(userId: string): Promise<User[]> {
     const result = await this.db.execute(sql`
-      SELECT DISTINCT u.id, u.name, u.managed_by AS "managedBy"
+      SELECT DISTINCT u.id, u.name, u.managed_by AS "managedBy", u.birthdate
       FROM users u
       WHERE
         u.managed_by = ${userId}
@@ -82,13 +87,13 @@ export class DrizzleUserRepository implements UserRepository {
         )
       ORDER BY u.name
     `);
-    return (result.rows as Array<{ id: string; name: string; managedBy: string | null }>)
-      .map((r) => new User(r.id, r.name, null, null, r.managedBy, new Date()));
+    return (result.rows as Array<{ id: string; name: string; managedBy: string | null; birthdate: string | null }>)
+      .map((r) => new User(r.id, r.name, null, null, r.managedBy, new Date(), r.birthdate ?? null));
   }
 
   async findChildren(userId: string): Promise<User[]> {
     const rows = await this.db
-      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt })
+      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt, birthdate: users.birthdate })
       .from(users)
       .where(eq(users.managedBy, userId))
       .orderBy(users.name);
@@ -97,7 +102,7 @@ export class DrizzleUserRepository implements UserRepository {
 
   async findFriendContacts(userId: string): Promise<User[]> {
     const rows = await this.db
-      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt })
+      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt, birthdate: users.birthdate })
       .from(userContacts)
       .innerJoin(users, eq(userContacts.contactId, users.id))
       .where(and(
@@ -164,6 +169,13 @@ export class DrizzleUserRepository implements UserRepository {
     await this.db
       .update(users)
       .set({ shareToken: null })
+      .where(eq(users.id, userId));
+  }
+
+  async updateBirthdate(userId: string, birthdate: string | null): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ birthdate })
       .where(eq(users.id, userId));
   }
 }

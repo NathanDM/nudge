@@ -12,6 +12,7 @@ export class GiftIdea {
     public readonly claimedAnonymously: boolean,
     public readonly ogImageUrl: string | null,
     public readonly createdAt: Date,
+    public readonly secret: boolean = false,
   ) {}
 
   isClaimed(): boolean {
@@ -23,7 +24,7 @@ export class GiftIdea {
   }
 
   canBeDeletedBy(userId: string): boolean {
-    return userId === this.addedByUserId;
+    return userId === this.addedByUserId || (userId === this.forUserId && !this.secret);
   }
 
   canBeClaimedBy(userId: string): boolean {

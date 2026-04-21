@@ -18,6 +18,7 @@ export interface UserRepository {
   getShareToken(userId: string): Promise<string | null>;
   setShareToken(userId: string, token: string): Promise<void>;
   clearShareToken(userId: string): Promise<void>;
+  updateBirthdate(userId: string, birthdate: string | null): Promise<void>;
 }
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');

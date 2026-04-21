@@ -8,23 +8,12 @@ interface Props {
 }
 
 export default function GiftList({ gifts, forUserId, isOwnList }: Props) {
-  if (gifts.length === 0) {
-    return (
-      <div className="text-center text-sage py-8 bg-white/50 rounded-xl">
-        Aucune idée de cadeau pour le moment.
-      </div>
-    );
-  }
+  if (gifts.length === 0) return null;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-2.5">
       {gifts.map((gift) => (
-        <GiftCard
-          key={gift.id}
-          gift={gift}
-          forUserId={forUserId}
-          isOwnList={isOwnList}
-        />
+        <GiftCard key={gift.id} gift={gift} forUserId={forUserId} isOwnList={isOwnList}/>
       ))}
     </div>
   );

@@ -17,5 +17,6 @@ export const giftIdeas = pgTable('gift_ideas', {
   claimedAt: timestamp('claimed_at'),
   claimedAnonymously: boolean('claimed_anonymously').notNull().default(false),
   ogImageUrl: varchar('og_image_url', { length: 1000 }),
+  secret: boolean('secret').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

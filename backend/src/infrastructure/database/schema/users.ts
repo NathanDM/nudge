@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, date } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -7,5 +7,6 @@ export const users = pgTable('users', {
   pin: varchar('pin', { length: 60 }),
   managedBy: uuid('managed_by').references((): any => users.id, { onDelete: 'cascade' }),
   shareToken: varchar('share_token', { length: 32 }).unique(),
+  birthdate: date('birthdate'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

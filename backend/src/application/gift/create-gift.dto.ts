@@ -3,4 +3,5 @@ export class CreateGiftDto {
   description?: string;
   url?: string;
   price?: number;
+  secret?: boolean;
 }

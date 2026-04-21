@@ -14,5 +14,6 @@ export class LoginResponseDto {
   user: {
     id: string;
     name: string;
+    phone: string;
   };
 }

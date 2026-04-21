@@ -44,6 +44,11 @@ export class UserController {
     return this.userService.deleteChild(childId, req.user.id);
   }
 
+  @Patch('children/:childId')
+  updateChild(@Req() req: AuthRequest, @Param('childId') childId: string, @Body('birthdate') birthdate: string | null) {
+    return this.userService.updateChildBirthdate(childId, req.user.id, birthdate ?? null);
+  }
+
   @Delete('contacts/:contactId')
   removeContact(@Req() req: AuthRequest, @Param('contactId') contactId: string) {
     return this.userService.removeContact(req.user.id, contactId);
@@ -56,6 +61,16 @@ export class UserController {
     @Body('contactType') contactType: string,
   ) {
     return this.userService.updateContactType(req.user.id, contactId, contactType);
+  }
+
+  @Get('me')
+  getProfile(@Req() req: AuthRequest) {
+    return this.userService.getProfile(req.user.id);
+  }
+
+  @Patch('me')
+  updateProfile(@Req() req: AuthRequest, @Body('birthdate') birthdate: string | null) {
+    return this.userService.updateBirthdate(req.user.id, birthdate ?? null);
   }
 
   @Get('share-token')

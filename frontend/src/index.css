@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --sand: #FEF8F3;
+  --blush: #EED7CF;
+  --sage: #A5C8BF;
+  --active: #2D8C85;
+  --salmon: #E9ACB2;
+  --ink: #1F1B17;
+  --ink-soft: #6B5F57;
+  --ink-mute: #A39890;
+  --line: rgba(31, 27, 23, 0.08);
+}
+
+body {
+  font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+}
+
+.phone-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@keyframes toast-in {
+  from { transform: translate(-50%, 10px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.toast-animate {
+  animation: toast-in 0.25s ease-out;
+}

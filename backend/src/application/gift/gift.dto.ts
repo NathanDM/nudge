@@ -14,5 +14,6 @@ export class GiftResponseDto {
   canClaim?: boolean;
   canUnclaim?: boolean;
   canDelete: boolean;
+  secret: boolean;
   createdAt: Date;
 }

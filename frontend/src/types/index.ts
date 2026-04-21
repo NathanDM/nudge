@@ -1,7 +1,9 @@
 export interface User {
   id: string;
   name: string;
+  phone?: string | null;
   managedBy?: string | null;
+  birthdate?: string | null;
 }
 
 export interface Gift {
@@ -21,6 +23,7 @@ export interface Gift {
   canClaim?: boolean;
   canUnclaim?: boolean;
   canDelete: boolean;
+  secret: boolean;
   createdAt: string;
 }
 

@@ -6,5 +6,6 @@ export class User {
     public readonly pin: string | null,
     public readonly managedBy: string | null,
     public readonly createdAt: Date,
+    public readonly birthdate: string | null = null,
   ) {}
 }
