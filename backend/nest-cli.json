@@ -7,6 +7,7 @@
     "assets": [
       {
         "include": "infrastructure/database/migrations/**/*",
+        "outDir": "dist/src",
         "watchAssets": true
       }
     ]
