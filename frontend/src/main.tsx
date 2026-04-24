@@ -16,3 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </Provider>
   </React.StrictMode>,
 );
+
+const splash = document.getElementById('splash');
+if (splash) {
+  requestAnimationFrame(() => {
+    splash.classList.add('hidden');
+    setTimeout(() => splash.remove(), 300);
+  });
+}
