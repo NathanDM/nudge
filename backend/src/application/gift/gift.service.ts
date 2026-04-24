@@ -83,55 +83,36 @@ async function fetchShopifyJson(url: string): Promise<OgData> {
   };
 }
 
-async function fetchViaMicrolink(url: string): Promise<OgData> {
-  const endpoint = `https://api.microlink.io?url=${encodeURIComponent(url)}`;
-  const res = await fetch(endpoint);
-  if (!res.ok) return { imageUrl: null, title: null, price: null };
-  const json = await res.json() as { status: string; data?: { title?: string; image?: { url: string } } };
-  if (json.status !== 'success' || !json.data) return { imageUrl: null, title: null, price: null };
-  return {
-    title: json.data.title ?? null,
-    imageUrl: json.data.image?.url ?? null,
-    price: null,
-  };
-}
-
-function timeout<T>(ms: number, fallback: T): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(fallback), ms));
-}
-
 async function fetchOgData(url: string): Promise<OgData> {
   const empty: OgData = { imageUrl: null, title: null, price: null };
   try {
     const isShopify = /\/products\/[^/?#]+/.test(new URL(url).pathname);
 
     if (isShopify) {
-      const shopify = await Promise.race([fetchShopifyJson(url), timeout(5000, empty)]);
+      const shopify = await Promise.race([
+        fetchShopifyJson(url),
+        new Promise<OgData>((resolve) => setTimeout(() => resolve(empty), 5000)),
+      ]);
       if (shopify.title) return shopify;
     }
 
     const res = await Promise.race([
       fetch(url, { headers: BROWSER_HEADERS }),
-      timeout(5000, null),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
     ]);
-
-    if (res && res.ok) {
-      const html = await res.text();
-      const imageUrl = extractMeta(html, 'og:image');
-      const title = extractMeta(html, 'og:title');
-      const priceStr = extractMeta(html, 'product:price:amount') ?? extractMeta(html, 'og:price:amount');
-      const parsed = priceStr ? Math.round(parseFloat(priceStr) * 100) : null;
-      const ogPrice = parsed !== null && !isNaN(parsed) ? parsed : null;
-      const ld = extractLdJson(html);
-      const result = {
-        imageUrl: imageUrl ?? ld.imageUrl,
-        title: title ?? ld.title,
-        price: ogPrice ?? ld.price,
-      };
-      if (result.title) return result;
-    }
-
-    return await Promise.race([fetchViaMicrolink(url), timeout(6000, empty)]);
+    if (!res.ok) return empty;
+    const html = await res.text();
+    const imageUrl = extractMeta(html, 'og:image');
+    const title = extractMeta(html, 'og:title');
+    const priceStr = extractMeta(html, 'product:price:amount') ?? extractMeta(html, 'og:price:amount');
+    const parsed = priceStr ? Math.round(parseFloat(priceStr) * 100) : null;
+    const ogPrice = parsed !== null && !isNaN(parsed) ? parsed : null;
+    const ld = extractLdJson(html);
+    return {
+      imageUrl: imageUrl ?? ld.imageUrl,
+      title: title ?? ld.title,
+      price: ogPrice ?? ld.price,
+    };
   } catch {
     return empty;
   }
