@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { eq, and, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import { GiftIdeaRepository, GiftWithAuthor } from '../../domain/gift/gift-idea.repository';
+import { GiftIdeaRepository, GiftIdeaUpdate, GiftWithAuthor } from '../../domain/gift/gift-idea.repository';
 import { GiftIdea } from '../../domain/gift/gift-idea.entity';
 import { DRIZZLE, DrizzleDB } from '../database/drizzle.provider';
 import { giftIdeas, users } from '../database/schema';
@@ -62,6 +62,15 @@ export class DrizzleGiftIdeaRepository implements GiftIdeaRepository {
     secret?: boolean;
   }): Promise<GiftIdea> {
     const [row] = await this.db.insert(giftIdeas).values(data).returning();
+    return this.toEntity(row);
+  }
+
+  async update(id: string, data: GiftIdeaUpdate): Promise<GiftIdea> {
+    const [row] = await this.db
+      .update(giftIdeas)
+      .set(data)
+      .where(eq(giftIdeas.id, id))
+      .returning();
     return this.toEntity(row);
   }
 

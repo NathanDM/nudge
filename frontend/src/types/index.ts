@@ -23,6 +23,7 @@ export interface Gift {
   canClaim?: boolean;
   canUnclaim?: boolean;
   canDelete: boolean;
+  canEdit: boolean;
   secret: boolean;
   createdAt: string;
 }

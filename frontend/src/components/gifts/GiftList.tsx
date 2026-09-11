@@ -5,15 +5,16 @@ interface Props {
   gifts: Gift[];
   forUserId: string;
   isOwnList: boolean;
+  onEdit?: (gift: Gift) => void;
 }
 
-export default function GiftList({ gifts, forUserId, isOwnList }: Props) {
+export default function GiftList({ gifts, forUserId, isOwnList, onEdit }: Props) {
   if (gifts.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2.5">
       {gifts.map((gift) => (
-        <GiftCard key={gift.id} gift={gift} forUserId={forUserId} isOwnList={isOwnList}/>
+        <GiftCard key={gift.id} gift={gift} forUserId={forUserId} isOwnList={isOwnList} onEdit={onEdit}/>
       ))}
     </div>
   );

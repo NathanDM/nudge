@@ -27,6 +27,10 @@ export class GiftIdea {
     return userId === this.addedByUserId || (userId === this.forUserId && !this.secret);
   }
 
+  canBeEditedBy(userId: string): boolean {
+    return this.canBeDeletedBy(userId);
+  }
+
   canBeClaimedBy(userId: string): boolean {
     return userId !== this.forUserId && !this.isClaimed();
   }

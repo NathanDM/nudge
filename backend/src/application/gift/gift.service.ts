@@ -12,6 +12,7 @@ import {
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
 import { GiftResponseDto } from './gift.dto';
 import { CreateGiftDto } from './create-gift.dto';
+import { UpdateGiftDto } from './update-gift.dto';
 
 type OgData = { imageUrl: string | null; title: string | null; price: number | null };
 
@@ -149,6 +150,7 @@ export class GiftService {
           claimedByName: g.claimedByName,
           claimedAnonymously: g.claimedAnonymously,
           canDelete: g.canBeDeletedBy(viewerId),
+          canEdit: g.canBeEditedBy(viewerId),
           secret: false,
           createdAt: g.createdAt,
         }));
@@ -169,6 +171,7 @@ export class GiftService {
       canClaim: g.canBeClaimedBy(viewerId),
       canUnclaim: g.canBeUnclaimedBy(viewerId),
       canDelete: g.canBeDeletedBy(viewerId),
+      canEdit: g.canBeEditedBy(viewerId),
       secret: g.secret,
       createdAt: g.createdAt,
     }));
@@ -191,6 +194,25 @@ export class GiftService {
       price: dto.price ?? og.price,
       ogImageUrl: og.imageUrl,
       secret: dto.secret ?? false,
+    });
+  }
+
+  async updateGift(giftId: string, userId: string, dto: UpdateGiftDto) {
+    const gift = await this.giftRepo.findById(giftId);
+    if (!gift) throw new NotFoundException('Gift not found');
+    if (!gift.canBeEditedBy(userId))
+      throw new ForbiddenException('Only the author can edit this gift idea');
+
+    const url = dto.url || null;
+    const urlChanged = url !== gift.url;
+    const og = urlChanged && url ? await fetchOgData(url) : null;
+    const title = dto.title || og?.title || gift.title;
+    return this.giftRepo.update(giftId, {
+      title,
+      description: dto.description || null,
+      url,
+      price: dto.price ?? og?.price ?? null,
+      ogImageUrl: urlChanged ? og?.imageUrl ?? null : gift.ogImageUrl,
     });
   }
 

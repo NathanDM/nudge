@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { GiftService } from '../../../application/gift/gift.service';
 import { CreateGiftDto } from '../../../application/gift/create-gift.dto';
+import { UpdateGiftDto } from '../../../application/gift/update-gift.dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('api')
@@ -30,6 +31,15 @@ export class GiftController {
     @Req() req: any,
   ) {
     return this.giftService.createGift(userId, req.user.id, dto);
+  }
+
+  @Patch('gifts/:giftId')
+  async updateGift(
+    @Param('giftId') giftId: string,
+    @Body() dto: UpdateGiftDto,
+    @Req() req: any,
+  ) {
+    return this.giftService.updateGift(giftId, req.user.id, dto);
   }
 
   @Delete('gifts/:giftId')

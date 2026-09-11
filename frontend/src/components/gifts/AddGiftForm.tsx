@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../api/client';
+import { Gift } from '../../types';
+
+type GiftPayload = { title: string; description?: string; url?: string; price?: number; secret?: boolean };
 
 interface Props {
   forUserId: string;
+  gift?: Gift;
   mode?: 'own' | 'secret';
   secret?: boolean;
   onSuccess?: () => void;
@@ -11,17 +15,18 @@ interface Props {
   onStateChange?: (state: { canSubmit: boolean; isPending: boolean }) => void;
 }
 
-export default function AddGiftForm({ forUserId, mode = 'own', secret, onSuccess, formId, onStateChange }: Props) {
+export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onSuccess, formId, onStateChange }: Props) {
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [url, setUrl] = useState('');
-  const [price, setPrice] = useState('');
+  const [title, setTitle] = useState(gift?.title ?? '');
+  const [description, setDescription] = useState(gift?.description ?? '');
+  const [url, setUrl] = useState(gift?.url ?? '');
+  const [price, setPrice] = useState(gift?.price ? String(gift.price / 100) : '');
   const isSecret = mode === 'secret';
+  const isEdit = !!gift;
 
   const mutation = useMutation({
-    mutationFn: (data: { title: string; description?: string; url?: string; price?: number; secret?: boolean }) =>
-      apiClient.post(`/users/${forUserId}/gifts`, data),
+    mutationFn: (data: GiftPayload) =>
+      isEdit ? apiClient.patch(`/gifts/${gift.id}`, data) : apiClient.post(`/users/${forUserId}/gifts`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gifts', forUserId] });
       setTitle('');
@@ -43,7 +48,7 @@ export default function AddGiftForm({ forUserId, mode = 'own', secret, onSuccess
       description: description || undefined,
       url: url || undefined,
       price: price ? Math.round(parseFloat(price) * 100) : undefined,
-      secret: secret ?? (mode === 'secret'),
+      secret: isEdit ? undefined : secret ?? isSecret,
     });
   };
 
@@ -112,7 +117,7 @@ export default function AddGiftForm({ forUserId, mode = 'own', secret, onSuccess
           className="w-full rounded-2xl py-3.5 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40 mt-2"
           style={{ background: isSecret ? 'var(--salmon)' : 'var(--sage)' }}
         >
-          {mutation.isPending ? 'Ajout…' : isSecret ? 'Ajouter en secret' : 'Ajouter'}
+          {mutation.isPending ? 'Enregistrement…' : isEdit ? 'Enregistrer' : isSecret ? 'Ajouter en secret' : 'Ajouter'}
         </button>
       )}
     </form>

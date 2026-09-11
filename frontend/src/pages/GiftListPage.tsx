@@ -45,6 +45,8 @@ function CheckIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>;
 }
 
+type DrawerMode = 'own' | 'secret' | 'suggestion' | 'edit';
+
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   return (
     <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}>
@@ -167,7 +169,8 @@ export default function GiftListPage() {
   const { setCloseHandler, notifyDrawerOpen, setViewingUserId } = useOutletContext<AppShellContext>();
   const isOwnList = user?.id === userId;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState<'own' | 'secret' | 'suggestion'>('own');
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>('own');
+  const [editingGift, setEditingGift] = useState<Gift | null>(null);
   const [giftFormState, setGiftFormState] = useState({ canSubmit: false, isPending: false });
   const [shareOpen, setShareOpen] = useState(false);
   const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
@@ -198,13 +201,19 @@ export default function GiftListPage() {
       .catch(() => setShareToken(null));
   }, [isOwnList, shareOpen]);
 
-  const openDrawer = useCallback((mode: 'own' | 'secret' | 'suggestion') => {
+  const openDrawer = useCallback((mode: DrawerMode) => {
     setDrawerMode(mode);
     setIsDrawerOpen(true);
   }, []);
 
+  const openEdit = useCallback((gift: Gift) => {
+    setEditingGift(gift);
+    openDrawer('edit');
+  }, [openDrawer]);
+
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
+    setEditingGift(null);
   }, []);
 
   useEffect(() => {
@@ -293,7 +302,7 @@ export default function GiftListPage() {
               <div className="text-center py-8 text-sm font-semibold" style={{ color: 'var(--ink-mute)' }}>Chargement…</div>
             ) : (
               <>
-                <GiftList gifts={displayedGifts} forUserId={userId!} isOwnList={false}/>
+                <GiftList gifts={displayedGifts} forUserId={userId!} isOwnList={false} onEdit={openEdit}/>
                 {displayedGifts.length === 0 && (
                   <div className="text-center py-6 text-[13px]" style={{ color: 'var(--ink-soft)' }}>
                     {activeTab === 'secret' ? "Aucune surprise pour l\u2019instant." : 'Aucun cadeau pour le moment.'}
@@ -353,7 +362,7 @@ export default function GiftListPage() {
                 </button>
               </div>
             ) : (
-              <GiftList gifts={gifts ?? []} forUserId={userId!} isOwnList={true}/>
+              <GiftList gifts={gifts ?? []} forUserId={userId!} isOwnList={true} onEdit={openEdit}/>
             )}
           </div>
         </>
@@ -366,16 +375,18 @@ export default function GiftListPage() {
           <div className="flex justify-center pt-3 shrink-0"><div className="w-10 h-1.5 rounded-full bg-black/10"/></div>
           <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
             <h3 className="display text-[19px] font-bold" style={{ color: 'var(--ink)' }}>
-              {drawerMode === 'secret' ? `Idée surprise pour ${targetName}` : drawerMode === 'suggestion' ? `Suggérer à ${targetName}` : 'Ajouter à ma liste'}
+              {drawerTitle(drawerMode, targetName)}
             </h3>
             <button onClick={closeDrawer} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(31,27,23,0.06)', color: 'var(--ink-soft)' }} aria-label="Fermer">
               <XIcon/>
             </button>
           </div>
           <div className="px-5 overflow-y-auto flex-1">
-            <VisibilityBanner mode={drawerMode} targetName={targetName}/>
+            {drawerMode !== 'edit' && <VisibilityBanner mode={drawerMode} targetName={targetName}/>}
             <AddGiftForm
+              key={editingGift?.id ?? 'new'}
               formId="add-gift-form"
+              gift={editingGift ?? undefined}
               forUserId={drawerMode === 'own' ? user?.id ?? '' : userId!}
               mode={drawerMode === 'secret' ? 'secret' : 'own'}
               secret={drawerMode === 'secret'}
@@ -391,7 +402,7 @@ export default function GiftListPage() {
               className="w-full rounded-2xl py-3.5 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
               style={{ background: drawerMode === 'secret' ? 'var(--salmon)' : 'var(--sage)' }}
             >
-              {giftFormState.isPending ? 'Ajout…' : drawerMode === 'secret' ? 'Ajouter en secret' : drawerMode === 'suggestion' ? 'Suggérer' : 'Ajouter'}
+              {giftFormState.isPending ? 'Enregistrement…' : drawerSubmitLabel(drawerMode)}
             </button>
           </div>
         </div>
@@ -402,7 +413,21 @@ export default function GiftListPage() {
   );
 }
 
-function VisibilityBanner({ mode, targetName }: { mode: 'own' | 'secret' | 'suggestion'; targetName: string }) {
+function drawerTitle(mode: DrawerMode, targetName: string) {
+  if (mode === 'edit') return 'Modifier le cadeau';
+  if (mode === 'secret') return `Idée surprise pour ${targetName}`;
+  if (mode === 'suggestion') return `Suggérer à ${targetName}`;
+  return 'Ajouter à ma liste';
+}
+
+function drawerSubmitLabel(mode: DrawerMode) {
+  if (mode === 'edit') return 'Enregistrer';
+  if (mode === 'secret') return 'Ajouter en secret';
+  if (mode === 'suggestion') return 'Suggérer';
+  return 'Ajouter';
+}
+
+function VisibilityBanner({ mode, targetName }: { mode: DrawerMode; targetName: string }) {
   if (mode === 'secret') return (
     <div className="rounded-2xl p-3.5 mb-4 flex gap-3" style={{ background: 'rgba(233,172,178,0.15)', border: '1px solid rgba(233,172,178,0.4)' }}>
       <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white" style={{ background: 'var(--salmon)' }}>

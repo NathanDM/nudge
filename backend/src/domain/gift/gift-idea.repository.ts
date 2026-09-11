@@ -1,5 +1,13 @@
 import { GiftIdea } from './gift-idea.entity';
 
+export type GiftIdeaUpdate = {
+  title: string;
+  description: string | null;
+  url: string | null;
+  price: number | null;
+  ogImageUrl: string | null;
+};
+
 export type GiftWithAuthor = GiftIdea & { addedByName: string; claimedByName: string | null };
 
 export interface GiftIdeaRepository {
@@ -15,6 +23,7 @@ export interface GiftIdeaRepository {
     ogImageUrl?: string | null;
     secret?: boolean;
   }): Promise<GiftIdea>;
+  update(id: string, data: GiftIdeaUpdate): Promise<GiftIdea>;
   delete(id: string): Promise<void>;
   claim(id: string, claimedByUserId: string): Promise<GiftIdea>;
   unclaim(id: string): Promise<GiftIdea>;

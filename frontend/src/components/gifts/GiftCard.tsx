@@ -7,6 +7,7 @@ interface Props {
   gift: Gift;
   forUserId: string;
   isOwnList: boolean;
+  onEdit?: (gift: Gift) => void;
 }
 
 function colorForName(name: string) {
@@ -73,14 +74,18 @@ function XIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
 }
 
+function PencilIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>;
+}
+
 function detectAxis(dx: number, dy: number): 'horizontal' | 'vertical' | 'none' {
   if (Math.abs(dx) <= 5 && Math.abs(dy) <= 5) return 'none';
   return Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
 }
 
-const ZONE_WIDTH = 160;
+const ACTION_WIDTH = 72;
 
-function useSwipeDelete(enabled: boolean) {
+function useSwipeActions(enabled: boolean, zoneWidth: number) {
   const [offsetX, setOffsetX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startX = useRef(0);
@@ -102,19 +107,19 @@ function useSwipeDelete(enabled: boolean) {
     const dy = e.touches[0].clientY - startY.current;
     if (axis.current === 'none') axis.current = detectAxis(dx, dy);
     if (axis.current !== 'horizontal' || dx >= 0) return;
-    setOffsetX(Math.max(-ZONE_WIDTH, dx));
+    setOffsetX(Math.max(-zoneWidth, dx));
   };
 
   const onTouchEnd = () => {
     setDragging(false);
-    if (offsetX < -ZONE_WIDTH / 2) setOffsetX(-ZONE_WIDTH);
+    if (offsetX < -zoneWidth / 2) setOffsetX(-zoneWidth);
     else close();
   };
 
-  return { offsetX, dragging, isOpen: offsetX <= -ZONE_WIDTH, onTouchStart, onTouchMove, onTouchEnd, close };
+  return { offsetX, dragging, isOpen: offsetX <= -zoneWidth, onTouchStart, onTouchMove, onTouchEnd, close };
 }
 
-export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
+export default function GiftCard({ gift, forUserId, isOwnList, onEdit }: Props) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -134,7 +139,10 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gifts', forUserId] }),
   });
 
-  const swipe = useSwipeDelete(gift.canDelete);
+  const canEdit = gift.canEdit && !!onEdit;
+  const actionCount = 1 + Number(canEdit) + Number(gift.canDelete);
+  const hasActions = canEdit || gift.canDelete;
+  const swipe = useSwipeActions(hasActions, ACTION_WIDTH * actionCount);
   const priceDisplay = gift.price ? `${(gift.price / 100).toFixed(0)}\u202f€` : null;
   const claimedByOther = !!gift.claimedByUserId && !gift.canUnclaim;
 
@@ -145,24 +153,18 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
 
   return (
     <div className="relative overflow-hidden rounded-[22px]" style={{ boxShadow: '0 1px 2px rgba(31,27,23,.04), 0 8px 20px -16px rgba(31,27,23,.2)', border: '1px solid var(--line)' }}>
-      {gift.canDelete && (
-        <div className="absolute inset-y-0 right-0 w-40 flex">
-          <button
-            className="flex-1 flex flex-col items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
-            style={{ background: 'rgba(31,27,23,0.08)', color: 'var(--ink-soft)' }}
-            onClick={(e) => { e.stopPropagation(); swipe.close(); }}
-          >
-            <XIcon/>
-            <span className="text-xs font-semibold">Annuler</span>
-          </button>
-          <button
-            className="flex-1 flex flex-col items-center justify-center gap-1 bg-red-400 text-white hover:bg-red-500 transition-colors disabled:opacity-50"
-            onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); swipe.close(); }}
-            disabled={deleteMutation.isPending}
-          >
-            <TrashIcon/>
-            <span className="text-xs font-semibold">Supprimer</span>
-          </button>
+      {hasActions && (
+        <div className="absolute inset-y-0 right-0 flex" style={{ width: ACTION_WIDTH * actionCount }}>
+          <SwipeAction label="Annuler" icon={<XIcon/>} onClick={swipe.close}
+            className="hover:bg-gray-200" style={{ background: 'rgba(31,27,23,0.08)', color: 'var(--ink-soft)' }}/>
+          {canEdit && (
+            <SwipeAction label="Modifier" icon={<PencilIcon/>} onClick={() => { swipe.close(); onEdit(gift); }}
+              className="text-white" style={{ background: 'var(--active)' }}/>
+          )}
+          {gift.canDelete && (
+            <SwipeAction label="Supprimer" icon={<TrashIcon/>} onClick={() => { deleteMutation.mutate(); swipe.close(); }}
+              disabled={deleteMutation.isPending} className="bg-red-400 text-white hover:bg-red-500"/>
+          )}
         </div>
       )}
 
@@ -205,6 +207,23 @@ export default function GiftCard({ gift, forUserId, isOwnList }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+function SwipeAction({ label, icon, onClick, disabled, className = '', style }: {
+  label: string; icon: React.ReactNode; onClick: () => void;
+  disabled?: boolean; className?: string; style?: React.CSSProperties;
+}) {
+  return (
+    <button
+      className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors disabled:opacity-50 ${className}`}
+      style={style}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      disabled={disabled}
+    >
+      {icon}
+      <span className="text-xs font-semibold">{label}</span>
+    </button>
   );
 }
 
