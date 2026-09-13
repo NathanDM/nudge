@@ -1,9 +1,6 @@
 import { Controller, Get, Post, Param, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard, AuthRequest } from '../auth/auth.guard';
 import { InvitationService } from '../../../application/invitation/invitation.service';
-
-type AuthRequest = Request & { user: { id: string; name: string } };
 
 @Controller('api/invitations')
 export class InvitationController {
