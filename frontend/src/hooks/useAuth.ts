@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { setCredentials, logout as logoutAction } from '../store/authSlice';
 import apiClient from '../api/client';
+import { queryClient } from '../db/queryClient';
 
 export function useAuth() {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,6 +19,7 @@ export function useAuth() {
   };
 
   const logout = () => {
+    queryClient.clear();
     dispatch(logoutAction());
   };
 
