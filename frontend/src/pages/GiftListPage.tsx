@@ -7,6 +7,8 @@ import { useAuth } from '../hooks/useAuth';
 import GiftList from '../components/gifts/GiftList';
 import { AppShellContext } from '../components/layout/AppShell';
 import AddGiftForm from '../components/gifts/AddGiftForm';
+import { ShareSheet } from '../components/gifts/ShareSheet';
+import { ShareTarget, useShareToken } from '../hooks/useShareToken';
 
 const PALETTE = ['#FFD2B3', '#F5CD69', '#A7D49B', '#66B1B0', '#C4B7E8', '#E892A7', '#F88C85', '#98CBE9'];
 function colorForId(id: string) {
@@ -35,130 +37,8 @@ function ChevronIcon() {
 function XIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
 }
-function LinkIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>;
-}
-function CopyIcon() {
-  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>;
-}
-function CheckIcon() {
-  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>;
-}
 
 type DrawerMode = 'own' | 'secret' | 'suggestion' | 'edit';
-
-function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  return (
-    <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}>
-      <div onClick={onClose} className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`}/>
-      <div className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-[28px] transition-transform duration-300 ${open ? 'translate-y-0' : 'translate-y-full'}`}
-           style={{ boxShadow: '0 -20px 40px -20px rgba(0,0,0,.2)', maxHeight: '92%' }}>
-        <div className="flex justify-center pt-3"><div className="w-10 h-1.5 rounded-full bg-black/10"/></div>
-        <div className="flex items-center justify-between px-5 pt-3 pb-2">
-          <h3 className="display text-[19px] font-bold" style={{ color: 'var(--ink)' }}>{title}</h3>
-          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(31,27,23,0.06)', color: 'var(--ink-soft)' }} aria-label="Fermer"><XIcon/></button>
-        </div>
-        <div className="px-5 pb-8 overflow-y-auto" style={{ maxHeight: '75vh' }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function ShareSheet({ open, onClose, shareToken, onGenerateToken, generating, onRevoke, revoking }: {
-  open: boolean; onClose: () => void;
-  shareToken: string | null | undefined;
-  onGenerateToken: () => void;
-  generating: boolean;
-  onRevoke: () => void;
-  revoking: boolean;
-}) {
-  const [copied, setCopied] = useState(false);
-  const [confirmRevoke, setConfirmRevoke] = useState(false);
-  const shareUrl = shareToken ? `${window.location.origin}/share/${shareToken}` : null;
-  const displayUrl = shareToken ? `${window.location.host}/share/${shareToken}` : null;
-
-  const doCopy = async () => {
-    if (!shareUrl) return;
-    try { await navigator.clipboard.writeText(shareUrl); } catch {}
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <Sheet open={open} onClose={onClose} title="Partager ma liste">
-      {!shareToken ? (
-        <div className="pt-4 flex flex-col items-center gap-4">
-          <p className="text-[13px] text-center" style={{ color: 'var(--ink-soft)' }}>
-            Génère un lien public pour que tes proches voient ta liste — même sans compte.
-          </p>
-          <button onClick={onGenerateToken} disabled={generating}
-            className="w-full rounded-2xl py-3.5 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
-            style={{ background: 'var(--active)' }}>
-            {generating ? 'Génération…' : 'Générer un lien de partage'}
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-2 mt-2 mb-4 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(31,27,23,0.05)' }}>
-            <LinkIcon/>
-            <span className="text-[12px] font-bold truncate" style={{ color: 'var(--ink)' }}>{displayUrl}</span>
-          </div>
-
-          <div className="rounded-2xl p-3.5 mb-3" style={{ background: 'rgba(165,200,191,0.15)', border: '1px solid rgba(165,200,191,0.35)' }}>
-            <div className="text-[12px] font-bold mb-1.5" style={{ color: 'var(--active)' }}>Qui peut voir ta liste ?</div>
-            <ul className="text-[12px] leading-relaxed space-y-0.5" style={{ color: 'var(--ink-soft)' }}>
-              <li>• Tes proches, s'ils sont déjà sur Nudge.</li>
-              <li>• Toute personne avec ce lien, sans compte.</li>
-              <li className="font-semibold" style={{ color: 'var(--ink)' }}>• Toi, tu ne verras jamais qui a réservé quoi.</li>
-            </ul>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <button onClick={doCopy} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl active:scale-[0.97]"
-                    style={{ background: 'rgba(31,27,23,0.07)', color: 'var(--ink)' }}>
-              {copied ? <CheckIcon/> : <CopyIcon/>}
-              <span className="text-[11px] font-bold">{copied ? 'Copié' : 'Copier'}</span>
-            </button>
-            <a href={shareUrl ? `sms:?body=${encodeURIComponent(shareUrl)}` : '#'}
-               className="flex flex-col items-center gap-1.5 py-3 rounded-2xl active:scale-[0.97]"
-               style={{ background: 'rgba(165,200,191,0.25)', color: 'var(--active)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-4 4v-4H6a2 2 0 0 1-2-2z"/></svg>
-              <span className="text-[11px] font-bold">SMS</span>
-            </a>
-            <a href={shareUrl ? `https://wa.me/?text=${encodeURIComponent(shareUrl)}` : '#'}
-               target="_blank" rel="noopener noreferrer"
-               className="flex flex-col items-center gap-1.5 py-3 rounded-2xl active:scale-[0.97]"
-               style={{ background: 'rgba(37,211,102,0.15)', color: '#128C7E' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-4 4v-4H6a2 2 0 0 1-2-2z"/></svg>
-              <span className="text-[11px] font-bold">WhatsApp</span>
-            </a>
-          </div>
-
-          <div className="border-t pt-4" style={{ borderColor: 'var(--line)' }}>
-            {confirmRevoke ? (
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-[12px]" style={{ color: 'var(--ink-soft)' }}>Révoquer ce lien ?</span>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setConfirmRevoke(false)} className="text-[12px] font-bold" style={{ color: 'var(--ink-mute)' }}>Annuler</button>
-                  <button onClick={() => { onRevoke(); setConfirmRevoke(false); }} disabled={revoking}
-                    className="text-[12px] font-bold disabled:opacity-50" style={{ color: '#B85563' }}>
-                    {revoking ? 'Révocation…' : 'Révoquer'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setConfirmRevoke(true)}
-                className="w-full text-center text-[12px] font-bold py-1"
-                style={{ color: 'var(--ink-mute)' }}>
-                Révoquer le lien de partage
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </Sheet>
-  );
-}
 
 export default function GiftListPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -173,14 +53,18 @@ export default function GiftListPage() {
   const [editingGift, setEditingGift] = useState<Gift | null>(null);
   const [giftFormState, setGiftFormState] = useState({ canSubmit: false, isPending: false });
   const [shareOpen, setShareOpen] = useState(false);
-  const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
-  const [shareGenerating, setShareGenerating] = useState(false);
-  const [shareRevoking, setShareRevoking] = useState(false);
   const [activeTab, setActiveTab] = useState<'wishlist' | 'secret'>('wishlist');
 
+  const { data: family } = useQuery<User[]>({
+    queryKey: ['family'],
+    queryFn: () => apiClient.get('/users/family').then((r) => r.data),
+    enabled: !isOwnList,
+  });
   const targetUser =
-    queryClient.getQueryData<User[]>(['family'])?.find((u) => u.id === userId) ??
+    family?.find((u) => u.id === userId) ??
     queryClient.getQueryData<User[]>(['friends'])?.find((u) => u.id === userId);
+  const isManagedChild = !!user && !!targetUser && targetUser.managedBy === user.id;
+  const share = useShareToken(shareTarget(isOwnList, isManagedChild, userId));
 
   const { data: gifts, isLoading } = useQuery<Gift[]>({
     queryKey: ['gifts', userId],
@@ -193,13 +77,6 @@ export default function GiftListPage() {
     else setViewingUserId(null);
     return () => setViewingUserId(null);
   }, [userId, isOwnList, setViewingUserId]);
-
-  useEffect(() => {
-    if (shareOpen || !isOwnList) return;
-    apiClient.get<{ shareToken: string | null }>('/users/share-token')
-      .then((r) => setShareToken(r.data.shareToken))
-      .catch(() => setShareToken(null));
-  }, [isOwnList, shareOpen]);
 
   const openDrawer = useCallback((mode: DrawerMode) => {
     setDrawerMode(mode);
@@ -232,26 +109,6 @@ export default function GiftListPage() {
     return () => { setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setCloseHandler, notifyDrawerOpen]);
 
-  const handleGenerateShareToken = async () => {
-    setShareGenerating(true);
-    try {
-      const { data } = await apiClient.post<{ shareToken: string }>('/users/share-token');
-      setShareToken(data.shareToken);
-    } finally {
-      setShareGenerating(false);
-    }
-  };
-
-  const handleRevokeShareToken = async () => {
-    setShareRevoking(true);
-    try {
-      await apiClient.delete('/users/share-token');
-      setShareToken(null);
-    } finally {
-      setShareRevoking(false);
-    }
-  };
-
   const visibleGifts = (gifts ?? []).filter((g) => !g.secret);
   const secretGifts = (gifts ?? []).filter((g) => g.secret);
   const displayedGifts = !isOwnList && activeTab === 'secret' ? secretGifts : visibleGifts;
@@ -274,6 +131,7 @@ export default function GiftListPage() {
             </button>
             <h1 className="display text-[24px] font-black flex-1 truncate" style={{ color: 'var(--ink)' }}>Liste de {targetName}</h1>
             <div className="text-[11px] font-bold shrink-0" style={{ color: 'var(--ink-soft)' }}>{visibleGifts.length} cadeau{visibleGifts.length > 1 ? 'x' : ''}</div>
+            {isManagedChild && <ShareButton onClick={() => setShareOpen(true)}/>}
           </div>
 
           <div className="px-5 mt-3 flex gap-5 border-b" style={{ borderColor: 'var(--line)' }}>
@@ -329,10 +187,7 @@ export default function GiftListPage() {
               <h1 className="display text-[28px] font-black leading-tight" style={{ color: 'var(--ink)' }}>Ma liste</h1>
               {gifts && <p className="text-[13px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>{gifts.length} cadeau{gifts.length > 1 ? 'x' : ''} · visible par tes proches</p>}
             </div>
-            <button onClick={() => setShareOpen(true)} className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(238,215,207,0.35)', color: 'var(--ink)' }} aria-label="Partager">
-              <ShareIcon/>
-            </button>
+            <ShareButton onClick={() => setShareOpen(true)}/>
           </div>
 
           {(gifts ?? []).length <= 3 && (
@@ -408,8 +263,28 @@ export default function GiftListPage() {
         </div>
       </div>
 
-      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} shareToken={shareToken ?? null} onGenerateToken={handleGenerateShareToken} generating={shareGenerating} onRevoke={handleRevokeShareToken} revoking={shareRevoking}/>
+      {(isOwnList || isManagedChild) && (
+        <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)}
+          subject={isOwnList ? { kind: 'self' } : { kind: 'child', name: targetName }}
+          shareToken={share.shareToken} onGenerateToken={share.generate} generating={share.generating}
+          onRevoke={share.revoke} revoking={share.revoking}/>
+      )}
     </div>
+  );
+}
+
+function shareTarget(isOwnList: boolean, isManagedChild: boolean, userId?: string): ShareTarget | null {
+  if (isOwnList) return { kind: 'self' };
+  if (isManagedChild && userId) return { kind: 'child', childId: userId };
+  return null;
+}
+
+function ShareButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(238,215,207,0.35)', color: 'var(--ink)' }} aria-label="Partager">
+      <ShareIcon/>
+    </button>
   );
 }
 
