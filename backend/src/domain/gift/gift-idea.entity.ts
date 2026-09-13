@@ -23,12 +23,14 @@ export class GiftIdea {
     return viewerId !== this.forUserId;
   }
 
-  canBeDeletedBy(userId: string): boolean {
-    return userId === this.addedByUserId || (userId === this.forUserId && !this.secret);
+  canBeDeletedBy(userId: string, ownerManagerId: string | null = null): boolean {
+    if (userId === this.addedByUserId) return true;
+    if (ownerManagerId !== null && userId === ownerManagerId) return true;
+    return userId === this.forUserId && !this.secret;
   }
 
-  canBeEditedBy(userId: string): boolean {
-    return this.canBeDeletedBy(userId);
+  canBeEditedBy(userId: string, ownerManagerId: string | null = null): boolean {
+    return this.canBeDeletedBy(userId, ownerManagerId);
   }
 
   canBeClaimedBy(userId: string): boolean {

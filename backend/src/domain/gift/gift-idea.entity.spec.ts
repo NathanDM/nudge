@@ -4,6 +4,7 @@ const makeGift = (overrides: Partial<{
   forUserId: string;
   claimedByUserId: string | null;
   claimedAnonymously: boolean;
+  secret: boolean;
 }> = {}): GiftIdea =>
   new GiftIdea(
     'gift-1',
@@ -18,6 +19,7 @@ const makeGift = (overrides: Partial<{
     overrides.claimedAnonymously ?? false,
     null,
     new Date(),
+    overrides.secret ?? false,
   );
 
 describe('GiftIdea.isClaimed', () => {
@@ -63,5 +65,31 @@ describe('GiftIdea.canBeUnclaimedByOwner', () => {
 
   it('returns false when gift is not anonymously claimed', () => {
     expect(makeGift({ claimedAnonymously: false }).canBeUnclaimedByOwner('owner-1')).toBe(false);
+  });
+});
+
+describe('GiftIdea.canBeDeletedBy', () => {
+  it('allows the author', () => {
+    expect(makeGift().canBeDeletedBy('adder-1')).toBe(true);
+  });
+
+  it('allows the owner when gift is not secret', () => {
+    expect(makeGift().canBeDeletedBy('owner-1')).toBe(true);
+  });
+
+  it('blocks the owner when gift is secret', () => {
+    expect(makeGift({ secret: true }).canBeDeletedBy('owner-1')).toBe(false);
+  });
+
+  it('allows the manager of the owner', () => {
+    expect(makeGift().canBeDeletedBy('parent-1', 'parent-1')).toBe(true);
+  });
+
+  it('allows the manager of the owner even when gift is secret', () => {
+    expect(makeGift({ secret: true }).canBeDeletedBy('parent-1', 'parent-1')).toBe(true);
+  });
+
+  it('blocks unrelated users', () => {
+    expect(makeGift().canBeDeletedBy('other-1', 'parent-1')).toBe(false);
   });
 });

@@ -156,6 +156,7 @@ export class GiftService {
         }));
     }
 
+    const managerId = await this.managerOf(forUserId);
     return gifts.map((g) => ({
       id: g.id,
       forUserId: g.forUserId,
@@ -170,8 +171,8 @@ export class GiftService {
       claimedAt: g.claimedAt,
       canClaim: g.canBeClaimedBy(viewerId),
       canUnclaim: g.canBeUnclaimedBy(viewerId),
-      canDelete: g.canBeDeletedBy(viewerId),
-      canEdit: g.canBeEditedBy(viewerId),
+      canDelete: g.canBeDeletedBy(viewerId, managerId),
+      canEdit: g.canBeEditedBy(viewerId, managerId),
       secret: g.secret,
       createdAt: g.createdAt,
     }));
@@ -200,8 +201,9 @@ export class GiftService {
   async updateGift(giftId: string, userId: string, dto: UpdateGiftDto) {
     const gift = await this.giftRepo.findById(giftId);
     if (!gift) throw new NotFoundException('Gift not found');
-    if (!gift.canBeEditedBy(userId))
-      throw new ForbiddenException('Only the author can edit this gift idea');
+    const managerId = await this.managerOf(gift.forUserId);
+    if (!gift.canBeEditedBy(userId, managerId))
+      throw new ForbiddenException('Cannot edit this gift idea');
 
     const url = dto.url || null;
     const urlChanged = url !== gift.url;
@@ -219,9 +221,15 @@ export class GiftService {
   async deleteGift(giftId: string, userId: string) {
     const gift = await this.giftRepo.findById(giftId);
     if (!gift) throw new NotFoundException('Gift not found');
-    if (!gift.canBeDeletedBy(userId))
-      throw new ForbiddenException('Only the author can delete this gift idea');
+    const managerId = await this.managerOf(gift.forUserId);
+    if (!gift.canBeDeletedBy(userId, managerId))
+      throw new ForbiddenException('Cannot delete this gift idea');
     await this.giftRepo.delete(giftId);
+  }
+
+  private async managerOf(userId: string): Promise<string | null> {
+    const owner = await this.userRepo.findById(userId);
+    return owner?.managedBy ?? null;
   }
 
   async claimGift(giftId: string, userId: string) {
