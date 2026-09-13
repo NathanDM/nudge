@@ -35,8 +35,8 @@ const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
 
 const makeSuggestionRepo = () => ({
   findSuggestions: jest.fn(),
-  addFamilyIfReciprocal: jest.fn(),
-  dismissIfReciprocal: jest.fn().mockResolvedValue(true),
+  addFamilyIfSuggested: jest.fn(),
+  dismissIfSuggested: jest.fn().mockResolvedValue(true),
 });
 
 const makeService = (repo: ReturnType<typeof makeRepo>, suggestionRepo = makeSuggestionRepo()) =>
@@ -112,7 +112,7 @@ describe('UserService', () => {
       const service = makeService(repo, suggestionRepo);
 
       await expect(service.updateContactType('user-1', 'unknown', 'family')).rejects.toThrow(NotFoundException);
-      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
+      expect(suggestionRepo.dismissIfSuggested).not.toHaveBeenCalled();
     });
 
     it('dismisses the family suggestion when downgrading to friend', async () => {
@@ -122,7 +122,7 @@ describe('UserService', () => {
 
       await service.updateContactType('user-1', 'contact-1', 'friend');
 
-      expect(suggestionRepo.dismissIfReciprocal).toHaveBeenCalledWith('user-1', 'contact-1');
+      expect(suggestionRepo.dismissIfSuggested).toHaveBeenCalledWith('user-1', 'contact-1');
     });
 
     it('does not dismiss when upgrading to family', async () => {
@@ -132,7 +132,7 @@ describe('UserService', () => {
 
       await service.updateContactType('user-1', 'contact-1', 'family');
 
-      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
+      expect(suggestionRepo.dismissIfSuggested).not.toHaveBeenCalled();
     });
   });
 
@@ -156,7 +156,7 @@ describe('UserService', () => {
       await service.removeContact('user-1', 'contact-1');
 
       expect(repo.removeContact).toHaveBeenCalledWith('user-1', 'contact-1');
-      expect(suggestionRepo.dismissIfReciprocal).toHaveBeenCalledWith('user-1', 'contact-1');
+      expect(suggestionRepo.dismissIfSuggested).toHaveBeenCalledWith('user-1', 'contact-1');
     });
 
     it('does not dismiss when nothing was removed', async () => {
@@ -166,7 +166,7 @@ describe('UserService', () => {
 
       await service.removeContact('user-1', 'not-mine');
 
-      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
+      expect(suggestionRepo.dismissIfSuggested).not.toHaveBeenCalled();
     });
   });
 

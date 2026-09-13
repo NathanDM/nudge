@@ -19,7 +19,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('BottomNav badge', () => {
   it('shows the suggestion count on the Famille tab', async () => {
-    get.mockResolvedValue({ data: [{ id: 'a', name: 'A', currentType: null }, { id: 'b', name: 'B', currentType: null }] });
+    get.mockResolvedValue({ data: [{ id: 'a', name: 'A', currentType: null, via: null }, { id: 'b', name: 'B', currentType: null, via: null }] });
 
     renderNav();
 

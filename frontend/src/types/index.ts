@@ -10,6 +10,7 @@ export interface FamilySuggestion {
   id: string;
   name: string;
   currentType: 'friend' | null;
+  via: string | null;
 }
 
 export interface Gift {

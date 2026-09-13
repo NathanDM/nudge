@@ -43,7 +43,7 @@ describe('DrizzleFamilySuggestionRepository (PGlite)', () => {
       // WHEN
       const result = await repo.findSuggestions(me);
       // THEN
-      expect(result).toEqual([{ id: bob, name: 'Bob', currentType: null }]);
+      expect(result).toEqual([{ id: bob, name: 'Bob', currentType: null, via: null }]);
     });
 
     it('suggests with currentType friend when I have them as friend', async () => {
@@ -52,7 +52,7 @@ describe('DrizzleFamilySuggestionRepository (PGlite)', () => {
 
       const result = await repo.findSuggestions(me);
 
-      expect(result).toEqual([{ id: bob, name: 'Bob', currentType: 'friend' }]);
+      expect(result).toEqual([{ id: bob, name: 'Bob', currentType: 'friend', via: null }]);
     });
 
     it('excludes someone I already have as family', async () => {
@@ -79,8 +79,8 @@ describe('DrizzleFamilySuggestionRepository (PGlite)', () => {
       await link(me, me, 'family');
 
       expect(await repo.findSuggestions(me)).toEqual([]);
-      expect(await repo.addFamilyIfReciprocal(me, me)).toBe(false);
-      expect(await repo.dismissIfReciprocal(me, me)).toBe(false);
+      expect(await repo.addFamilyIfSuggested(me, me)).toBe(false);
+      expect(await repo.dismissIfSuggested(me, me)).toBe(false);
     });
 
     it('orders suggestions newest first', async () => {
@@ -97,52 +97,128 @@ describe('DrizzleFamilySuggestionRepository (PGlite)', () => {
 
       expect(await repo.findSuggestions(me)).toEqual([]);
     });
+
+    it('suggests the family of my family with the first-hop name as via', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+
+      expect(await repo.findSuggestions(me)).toEqual([{ id: carl, name: 'Carl', currentType: null, via: 'Bob' }]);
+    });
+
+    it('follows family links transitively', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      const dan = await createUser('Dan', '0600000004');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+      await link(carl, dan, 'family');
+
+      expect((await repo.findSuggestions(me)).map((s) => [s.id, s.via])).toEqual([[carl, 'Bob'], [dan, 'Bob']]);
+    });
+
+    it('does not cross friend links when walking the circle', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'friend');
+      await link(bob, carl, 'family');
+
+      expect(await repo.findSuggestions(me)).toEqual([]);
+    });
+
+    it('terminates on cycles and never suggests myself', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+      await link(carl, me, 'family');
+      await link(carl, bob, 'family');
+
+      expect((await repo.findSuggestions(me)).map((s) => s.id)).toEqual([carl]);
+    });
+
+    it('lists people who added me before the circle, with via null when both apply', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      const dan = await createUser('Dan', '0600000004');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+      await link(bob, dan, 'family');
+      await link(dan, me, 'family');
+
+      const result = await repo.findSuggestions(me);
+
+      expect(result.map((s) => [s.id, s.via])).toEqual([[dan, null], [carl, 'Bob']]);
+    });
+
+    it('excludes circle members I dismissed', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+      await db.insert(familySuggestionDismissals).values({ userId: me, contactId: carl });
+
+      expect(await repo.findSuggestions(me)).toEqual([]);
+    });
   });
 
-  describe('addFamilyIfReciprocal', () => {
-    it('creates the family contact when reciprocal and absent', async () => {
+  describe('addFamilyIfSuggested', () => {
+    it('creates the family contact when suggested and absent', async () => {
       await link(bob, me, 'family');
 
-      const added = await repo.addFamilyIfReciprocal(me, bob);
+      const added = await repo.addFamilyIfSuggested(me, bob);
 
       expect(added).toBe(true);
       expect(await myContactType(bob)).toBe('family');
     });
 
-    it('upgrades friend to family when reciprocal', async () => {
+    it('upgrades friend to family when suggested', async () => {
       await link(bob, me, 'family');
       await link(me, bob, 'friend');
 
-      expect(await repo.addFamilyIfReciprocal(me, bob)).toBe(true);
+      expect(await repo.addFamilyIfSuggested(me, bob)).toBe(true);
       expect(await myContactType(bob)).toBe('family');
     });
 
-    it('writes nothing and returns false when not reciprocal', async () => {
+    it('writes nothing and returns false when not suggested', async () => {
       await link(bob, me, 'friend');
 
-      expect(await repo.addFamilyIfReciprocal(me, bob)).toBe(false);
+      expect(await repo.addFamilyIfSuggested(me, bob)).toBe(false);
       expect(await myContactType(bob)).toBeNull();
+    });
+
+    it('creates the family contact for a member of my circle', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+
+      expect(await repo.addFamilyIfSuggested(me, carl)).toBe(true);
+      expect(await myContactType(carl)).toBe('family');
     });
   });
 
-  describe('dismissIfReciprocal', () => {
-    it('records the dismissal when reciprocal', async () => {
+  describe('dismissIfSuggested', () => {
+    it('records the dismissal when suggested', async () => {
       await link(bob, me, 'family');
 
-      expect(await repo.dismissIfReciprocal(me, bob)).toBe(true);
+      expect(await repo.dismissIfSuggested(me, bob)).toBe(true);
       expect(await db.select().from(familySuggestionDismissals)).toHaveLength(1);
     });
 
-    it('writes nothing and returns false when not reciprocal', async () => {
-      expect(await repo.dismissIfReciprocal(me, bob)).toBe(false);
+    it('writes nothing and returns false when not suggested', async () => {
+      expect(await repo.dismissIfSuggested(me, bob)).toBe(false);
       expect(await db.select().from(familySuggestionDismissals)).toHaveLength(0);
+    });
+
+    it('records the dismissal for a member of my circle', async () => {
+      const carl = await createUser('Carl', '0600000003');
+      await link(me, bob, 'family');
+      await link(bob, carl, 'family');
+
+      expect(await repo.dismissIfSuggested(me, carl)).toBe(true);
+      expect(await db.select().from(familySuggestionDismissals)).toHaveLength(1);
     });
 
     it('is idempotent on a second dismissal', async () => {
       await link(bob, me, 'family');
-      await repo.dismissIfReciprocal(me, bob);
+      await repo.dismissIfSuggested(me, bob);
 
-      expect(await repo.dismissIfReciprocal(me, bob)).toBe(true);
+      expect(await repo.dismissIfSuggested(me, bob)).toBe(true);
       expect(await db.select().from(familySuggestionDismissals)).toHaveLength(1);
     });
   });

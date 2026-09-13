@@ -3,8 +3,8 @@ import { FamilySuggestionService } from './family-suggestion.service';
 
 const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
   findSuggestions: jest.fn(),
-  addFamilyIfReciprocal: jest.fn(),
-  dismissIfReciprocal: jest.fn(),
+  addFamilyIfSuggested: jest.fn(),
+  dismissIfSuggested: jest.fn(),
   ...overrides,
 });
 
@@ -23,15 +23,15 @@ describe('FamilySuggestionService', () => {
 
   describe('accept', () => {
     it('adds the family contact when reciprocal', async () => {
-      const repo = makeRepo({ addFamilyIfReciprocal: jest.fn().mockResolvedValue(true) });
+      const repo = makeRepo({ addFamilyIfSuggested: jest.fn().mockResolvedValue(true) });
       const service = new FamilySuggestionService(repo as any);
 
       await expect(service.accept('me', 'bob')).resolves.toBeUndefined();
-      expect(repo.addFamilyIfReciprocal).toHaveBeenCalledWith('me', 'bob');
+      expect(repo.addFamilyIfSuggested).toHaveBeenCalledWith('me', 'bob');
     });
 
     it('throws ForbiddenException when not reciprocal', async () => {
-      const repo = makeRepo({ addFamilyIfReciprocal: jest.fn().mockResolvedValue(false) });
+      const repo = makeRepo({ addFamilyIfSuggested: jest.fn().mockResolvedValue(false) });
       const service = new FamilySuggestionService(repo as any);
 
       await expect(service.accept('me', 'bob')).rejects.toThrow(ForbiddenException);
@@ -40,15 +40,15 @@ describe('FamilySuggestionService', () => {
 
   describe('dismiss', () => {
     it('records the dismissal when reciprocal', async () => {
-      const repo = makeRepo({ dismissIfReciprocal: jest.fn().mockResolvedValue(true) });
+      const repo = makeRepo({ dismissIfSuggested: jest.fn().mockResolvedValue(true) });
       const service = new FamilySuggestionService(repo as any);
 
       await expect(service.dismiss('me', 'bob')).resolves.toBeUndefined();
-      expect(repo.dismissIfReciprocal).toHaveBeenCalledWith('me', 'bob');
+      expect(repo.dismissIfSuggested).toHaveBeenCalledWith('me', 'bob');
     });
 
     it('throws ForbiddenException when not reciprocal', async () => {
-      const repo = makeRepo({ dismissIfReciprocal: jest.fn().mockResolvedValue(false) });
+      const repo = makeRepo({ dismissIfSuggested: jest.fn().mockResolvedValue(false) });
       const service = new FamilySuggestionService(repo as any);
 
       await expect(service.dismiss('me', 'bob')).rejects.toThrow(ForbiddenException);

@@ -2,7 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import { FamilySuggestionRow } from './FamilySuggestionRow';
 
-const bob = { id: 'bob', name: 'Bob Martin', currentType: null };
+const bob = { id: 'bob', name: 'Bob Martin', currentType: null, via: null };
+const carl = { id: 'carl', name: 'Carl Dupont', currentType: null, via: 'Bob' };
 const friendBob = { ...bob, currentType: 'friend' as const };
 
 const renderRow = (overrides: Partial<Parameters<typeof FamilySuggestionRow>[0]> = {}) => {
@@ -26,6 +27,12 @@ describe('FamilySuggestionRow', () => {
 
     expect(screen.getByText("T'a ajouté dans sa famille · déjà en amis")).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Passer en famille' })).toBeInTheDocument();
+  });
+
+  it('renders the "Dans la famille de" hint for a member of the circle', () => {
+    renderRow({ suggestion: carl });
+
+    expect(screen.getByText('Dans la famille de Bob')).toBeInTheDocument();
   });
 
   it('calls onAccept / onDismiss with the suggestion id', () => {

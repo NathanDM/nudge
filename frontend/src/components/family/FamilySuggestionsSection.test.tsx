@@ -29,9 +29,9 @@ describe('FamilySuggestionsSection', () => {
   });
 
   it('shows the count and toggles rows on collapse / expand', async () => {
-    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null }, { id: 'b', name: 'Ben', currentType: 'friend' }] });
+    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null, via: null }, { id: 'b', name: 'Ben', currentType: 'friend', via: null }] });
     renderSection();
-    const toggle = await screen.findByRole('button', { name: /Ils t'ont ajouté/ });
+    const toggle = await screen.findByRole('button', { name: /Suggestions/ });
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('2 · masquer')).toBeInTheDocument();
     expect(screen.getByText('Ana')).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('FamilySuggestionsSection', () => {
   });
 
   it('disables every row while one action is in flight and posts the action', async () => {
-    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null }, { id: 'b', name: 'Ben', currentType: null }] });
+    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null, via: null }, { id: 'b', name: 'Ben', currentType: null, via: null }] });
     post.mockReturnValue(new Promise(() => {}) as any);
     renderSection();
     await screen.findByText('Ana');
@@ -62,7 +62,7 @@ describe('FamilySuggestionsSection', () => {
   });
 
   it('shows the inline error on the failing row after a network error', async () => {
-    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null }] });
+    get.mockResolvedValue({ data: [{ id: 'a', name: 'Ana', currentType: null, via: null }] });
     post.mockRejectedValue(new Error('Network Error'));
     renderSection();
     await screen.findByText('Ana');

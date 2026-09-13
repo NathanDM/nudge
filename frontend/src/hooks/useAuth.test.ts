@@ -11,7 +11,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => createElement(P
 describe('useAuth.logout', () => {
   it('drops every cached query so the next account starts clean', () => {
     // GIVEN
-    queryClient.setQueryData(['family-suggestions'], [{ id: 'bob', name: 'Bob', currentType: null }]);
+    queryClient.setQueryData(['family-suggestions'], [{ id: 'bob', name: 'Bob', currentType: null, via: null }]);
     const { result } = renderHook(() => useAuth(), { wrapper });
     // WHEN
     act(() => result.current.logout());

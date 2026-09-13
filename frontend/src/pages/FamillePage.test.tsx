@@ -23,11 +23,11 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('FamillePage', () => {
   it('shows the "Ils t\'ont ajouté" section when suggestions exist', async () => {
-    mockApi([{ id: 'eve', name: 'Eve', currentType: null }]);
+    mockApi([{ id: 'eve', name: 'Eve', currentType: null, via: null }]);
 
     renderPage(<FamillePage/>);
 
-    await screen.findByText("Ils t'ont ajouté");
+    await screen.findByText("Suggestions");
     expect(screen.getByText('Eve')).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe('FamillePage', () => {
     renderPage(<FamillePage/>);
 
     await screen.findByText('Ma famille');
-    expect(screen.queryByText("Ils t'ont ajouté")).not.toBeInTheDocument();
+    expect(screen.queryByText("Suggestions")).not.toBeInTheDocument();
   });
 
   it('removing a contact invalidates family and family-suggestions (regression)', async () => {

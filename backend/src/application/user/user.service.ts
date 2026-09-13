@@ -47,12 +47,12 @@ export class UserService {
       throw new BadRequestException('contactType must be "family" or "friend"');
     const found = await this.userRepo.updateContactType(userId, contactId, contactType as 'family' | 'friend');
     if (!found) throw new NotFoundException('Contact introuvable');
-    if (contactType === 'friend') await this.suggestionRepo.dismissIfReciprocal(userId, contactId);
+    if (contactType === 'friend') await this.suggestionRepo.dismissIfSuggested(userId, contactId);
   }
 
   async removeContact(userId: string, contactId: string): Promise<void> {
     const removed = await this.userRepo.removeContact(userId, contactId);
-    if (removed) await this.suggestionRepo.dismissIfReciprocal(userId, contactId);
+    if (removed) await this.suggestionRepo.dismissIfSuggested(userId, contactId);
   }
 
   async addContactByPhone(userId: string, phone: string, contactType: 'family' | 'friend' = 'friend'): Promise<Omit<User, 'pin'>> {

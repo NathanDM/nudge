@@ -9,6 +9,11 @@ type Props = {
   error: boolean;
 };
 
+function hintFor({ via, currentType }: FamilySuggestion): string {
+  const origin = via ? `Dans la famille de ${via}` : "T'a ajouté dans sa famille";
+  return currentType === 'friend' ? `${origin} · déjà en amis` : origin;
+}
+
 export function FamilySuggestionRow({ suggestion, onAccept, onDismiss, pending, error }: Props) {
   const color = colorForId(suggestion.id);
   const isFriend = suggestion.currentType === 'friend';
@@ -23,7 +28,7 @@ export function FamilySuggestionRow({ suggestion, onAccept, onDismiss, pending, 
         <div className="flex-1 min-w-0">
           <div className="text-[14px] font-bold truncate" style={{ color: 'var(--ink)' }}>{suggestion.name}</div>
           <div className="text-[12px]" style={{ color: 'var(--ink-soft)' }}>
-            {isFriend ? "T'a ajouté dans sa famille · déjà en amis" : "T'a ajouté dans sa famille"}
+            {hintFor(suggestion)}
           </div>
         </div>
       </div>

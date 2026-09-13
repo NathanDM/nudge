@@ -14,7 +14,7 @@ export function FamilySuggestionsSection() {
       <button onClick={() => setCollapsed((c) => !c)} className="w-full flex items-center justify-between py-1.5"
         aria-expanded={!collapsed}>
         <span className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-soft)' }}>
-          Ils t'ont ajouté
+          Suggestions
         </span>
         <span className="text-[11px] font-bold" style={{ color: 'var(--active)' }}>
           {suggestions.length} · {collapsed ? 'voir' : 'masquer'}
