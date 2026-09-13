@@ -9,8 +9,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/infrastructure/database/seed.ts",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -46,6 +46,7 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@inquirer/ansi": "^1.0.2",
     "@inquirer/figures": "^1.0.15",
     "@nestjs/cli": "^11.0.21",
