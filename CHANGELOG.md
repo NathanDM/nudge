@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0.0] - 2026-09-13
+
+### Added
+- « Ils t'ont ajouté » : quand quelqu'un t'ajoute dans sa famille sans que tu l'aies, une section en tête de la page Famille te le propose, avec « Ajouter » (ou « Passer en famille » si tu l'avais en amis) et « Ignorer »
+- Badge sur l'onglet Famille avec le nombre de personnes en attente
+- Un refus est mémorisé côté serveur : la personne ne réapparaît sur aucun de tes appareils ; retirer ou rétrograder un contact vaut refus
+- Nouveaux endpoints `GET /api/users/family/suggestions`, `POST …/:contactId/accept`, `POST …/:contactId/dismiss` (403 si la personne ne t'a pas en famille, 400 si l'id n'est pas un uuid)
+
+### Changed
+- Le port du backend se configure avec `PORT` (3000 par défaut)
+- Les jeux de données de démo lient les membres d'une même famille par des contacts réciproques
+
+### Fixed
+- Accepter un lien d'invitation ne rétrograde plus un contact déjà en « famille » vers « amis »
+- Se déconnecter vide le cache de l'app : un second compte sur le même téléphone ne voit plus les données du premier
+- Un contact ajouté avec son propre numéro ne peut plus s'apparaître à lui-même en suggestion
+
+### Removed
+- Tables `families` et `user_families`, jamais utilisées par l'app, et le code mort associé (`findAll`, `findContacts`, `useUsersCollection`)
+
 ## [0.1.0.0] - 2026-04-14
 
 ### Added
