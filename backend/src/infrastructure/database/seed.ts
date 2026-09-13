@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { users, families, userFamilies, giftIdeas } from './schema';
+import { users, userContacts, giftIdeas, invitations } from './schema';
 import { sql } from 'drizzle-orm';
 
 async function seed() {
@@ -15,19 +15,9 @@ async function seed() {
 
   // Clean existing data
   await db.delete(giftIdeas);
-  await db.delete(userFamilies);
+  await db.delete(userContacts);
+  await db.delete(invitations);
   await db.delete(users);
-  await db.delete(families);
-
-  // Create families
-  const [damie] = await db
-    .insert(families)
-    .values({ name: 'Damie' })
-    .returning();
-  const [trehout] = await db
-    .insert(families)
-    .values({ name: 'Trehout' })
-    .returning();
 
   const phone = (n: number) => `06${String(n).padStart(8, '0')}`;
 
@@ -52,15 +42,14 @@ async function seed() {
     .values(commonMembers.map((name, i) => ({ name, phone: phone(i + 11), pin: '1234' })))
     .returning();
 
-  // Assign users to families
-  const userFamilyValues = [
-    ...damieUsers.map((u) => ({ userId: u.id, familyId: damie.id })),
-    ...trehoutUsers.map((u) => ({ userId: u.id, familyId: trehout.id })),
-    ...commonUsers.map((u) => ({ userId: u.id, familyId: damie.id })),
-    ...commonUsers.map((u) => ({ userId: u.id, familyId: trehout.id })),
-  ];
+  // Link each family group as reciprocal family contacts
+  const linkFamily = (members: { id: string }[]) =>
+    members.flatMap((a) => members.filter((b) => b.id !== a.id).map((b) => ({ userId: a.id, contactId: b.id, contactType: 'family' })));
 
-  await db.insert(userFamilies).values(userFamilyValues);
+  await db
+    .insert(userContacts)
+    .values([...linkFamily([...damieUsers, ...commonUsers]), ...linkFamily([...trehoutUsers, ...commonUsers])])
+    .onConflictDoNothing();
 
   // Add some sample gift ideas
   const paul = commonUsers.find((u) => u.name === 'Paul')!;
@@ -122,7 +111,6 @@ async function seed() {
 
   console.log('Seed completed successfully!');
   console.log(`Created ${damieUsers.length + trehoutUsers.length + commonUsers.length} users`);
-  console.log(`Created 2 families`);
   console.log(`Created 7 gift ideas`);
 
   await pool.end();
