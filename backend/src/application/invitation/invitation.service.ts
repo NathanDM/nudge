@@ -30,8 +30,8 @@ export class InvitationService {
   async accept(token: string, currentUserId: string): Promise<void> {
     const { inviterId } = await this.verify(token);
     await Promise.all([
-      this.userRepo.addContact(currentUserId, inviterId),
-      this.userRepo.addContact(inviterId, currentUserId),
+      this.userRepo.addContactIfMissing(currentUserId, inviterId),
+      this.userRepo.addContactIfMissing(inviterId, currentUserId),
       this.db.delete(invitations).where(eq(invitations.token, token)),
     ]);
   }

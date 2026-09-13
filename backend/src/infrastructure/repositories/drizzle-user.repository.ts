@@ -12,11 +12,6 @@ const toUser = (r: { id: string; name: string; phone?: string | null; pin?: stri
 export class DrizzleUserRepository implements UserRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
-  async findAll(): Promise<User[]> {
-    const rows = await this.db.select().from(users).orderBy(users.name);
-    return rows.map(toUser);
-  }
-
   async findById(id: string): Promise<User | null> {
     const [row] = await this.db.select().from(users).where(eq(users.id, id));
     return row ? toUser(row) : null;
@@ -59,16 +54,6 @@ export class DrizzleUserRepository implements UserRepository {
       await tx.delete(users).where(eq(users.id, childId));
     });
     return 'ok';
-  }
-
-  async findContacts(userId: string): Promise<User[]> {
-    const rows = await this.db
-      .select({ id: users.id, name: users.name, phone: users.phone, pin: users.pin, managedBy: users.managedBy, createdAt: users.createdAt })
-      .from(userContacts)
-      .innerJoin(users, eq(userContacts.contactId, users.id))
-      .where(eq(userContacts.userId, userId))
-      .orderBy(users.name);
-    return rows.map(toUser);
   }
 
   async findFamilyContacts(userId: string): Promise<User[]> {
@@ -126,10 +111,12 @@ export class DrizzleUserRepository implements UserRepository {
     return result.length > 0;
   }
 
-  async removeContact(userId: string, contactId: string): Promise<void> {
-    await this.db
+  async removeContact(userId: string, contactId: string): Promise<boolean> {
+    const deleted = await this.db
       .delete(userContacts)
-      .where(and(eq(userContacts.userId, userId), eq(userContacts.contactId, contactId)));
+      .where(and(eq(userContacts.userId, userId), eq(userContacts.contactId, contactId)))
+      .returning();
+    return deleted.length > 0;
   }
 
   async addContact(userId: string, contactId: string, contactType: 'family' | 'friend' = 'friend'): Promise<void> {
@@ -140,6 +127,13 @@ export class DrizzleUserRepository implements UserRepository {
         target: [userContacts.userId, userContacts.contactId],
         set: { contactType },
       });
+  }
+
+  async addContactIfMissing(userId: string, contactId: string): Promise<void> {
+    await this.db
+      .insert(userContacts)
+      .values({ userId, contactId, contactType: 'friend' })
+      .onConflictDoNothing();
   }
 
   async findByShareToken(token: string): Promise<User | null> {

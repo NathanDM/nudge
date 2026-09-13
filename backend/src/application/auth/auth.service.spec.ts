@@ -8,18 +8,17 @@ const makeUser = (overrides: Partial<{ managedBy: string | null; pin: string }> 
   new User('user-1', 'Alice', '0600000001', overrides.pin ?? 'hashed', overrides.managedBy ?? null, new Date());
 
 const makeRepo = (user: User | null) => ({
-  findAll: jest.fn(),
   findById: jest.fn(),
   findByPhone: jest.fn().mockResolvedValue(user),
   create: jest.fn(),
   createChild: jest.fn(),
   deleteChild: jest.fn(),
-  findContacts: jest.fn(),
   findChildren: jest.fn(),
   findFamilyContacts: jest.fn(),
   findFriendContacts: jest.fn(),
   updateContactType: jest.fn(),
   addContact: jest.fn(),
+  addContactIfMissing: jest.fn(),
 });
 
 const makeJwt = () => ({ sign: jest.fn().mockReturnValue('token') } as unknown as JwtService);

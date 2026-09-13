@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.repository';
+import { FamilySuggestionRepository, FAMILY_SUGGESTION_REPOSITORY } from '../../domain/user/family-suggestion.repository';
 import { User } from '../../domain/user/user.entity';
 
 type PublicUser = { id: string; name: string; managedBy: string | null; birthdate?: string | null };
@@ -9,7 +10,10 @@ const VALID_CONTACT_TYPES = ['family', 'friend'] as const;
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(USER_REPOSITORY) private readonly userRepo: UserRepository) {}
+  constructor(
+    @Inject(USER_REPOSITORY) private readonly userRepo: UserRepository,
+    @Inject(FAMILY_SUGGESTION_REPOSITORY) private readonly suggestionRepo: FamilySuggestionRepository,
+  ) {}
 
   async getChildren(userId: string): Promise<PublicUser[]> {
     const children = await this.userRepo.findChildren(userId);
@@ -43,13 +47,16 @@ export class UserService {
       throw new BadRequestException('contactType must be "family" or "friend"');
     const found = await this.userRepo.updateContactType(userId, contactId, contactType as 'family' | 'friend');
     if (!found) throw new NotFoundException('Contact introuvable');
+    if (contactType === 'friend') await this.suggestionRepo.dismissIfReciprocal(userId, contactId);
   }
 
   async removeContact(userId: string, contactId: string): Promise<void> {
-    await this.userRepo.removeContact(userId, contactId);
+    const removed = await this.userRepo.removeContact(userId, contactId);
+    if (removed) await this.suggestionRepo.dismissIfReciprocal(userId, contactId);
   }
 
   async addContactByPhone(userId: string, phone: string, contactType: 'family' | 'friend' = 'friend'): Promise<Omit<User, 'pin'>> {
+    if (!VALID_CONTACT_TYPES.includes(contactType)) throw new BadRequestException('contactType must be "family" or "friend"');
     const lastEight = phone.replace(/\D/g, '').slice(-8);
     const contact = await this.userRepo.findByPhone(lastEight);
     if (!contact) throw new NotFoundException('Utilisateur introuvable');

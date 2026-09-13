@@ -13,18 +13,19 @@ const makeUser = (overrides: Partial<{ id: string; name: string; phone: string |
   );
 
 const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
-  findAll: jest.fn(),
   findById: jest.fn(),
   findByPhone: jest.fn(),
   findByShareToken: jest.fn(),
   create: jest.fn(),
   createChild: jest.fn(),
   deleteChild: jest.fn(),
-  findContacts: jest.fn(),
   findFamilyContacts: jest.fn(),
   findFriendContacts: jest.fn(),
   updateContactType: jest.fn(),
   addContact: jest.fn(),
+  addContactIfMissing: jest.fn(),
+  removeContact: jest.fn(),
+  updateBirthdate: jest.fn(),
   getShareToken: jest.fn(),
   setShareToken: jest.fn(),
   clearShareToken: jest.fn(),
@@ -32,12 +33,21 @@ const makeRepo = (overrides: Record<string, jest.Mock> = {}) => ({
   ...overrides,
 });
 
+const makeSuggestionRepo = () => ({
+  findSuggestions: jest.fn(),
+  addFamilyIfReciprocal: jest.fn(),
+  dismissIfReciprocal: jest.fn().mockResolvedValue(true),
+});
+
+const makeService = (repo: ReturnType<typeof makeRepo>, suggestionRepo = makeSuggestionRepo()) =>
+  new UserService(repo as any, suggestionRepo as any);
+
 describe('UserService', () => {
   describe('createChild', () => {
     it('returns the created child', async () => {
       const child = makeUser({ id: 'child-1', name: 'Luc', phone: null, pin: null, managedBy: 'parent-1' });
       const repo = makeRepo({ createChild: jest.fn().mockResolvedValue(child) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       const result = await service.createChild('Luc', 'parent-1');
 
@@ -47,7 +57,7 @@ describe('UserService', () => {
 
     it('throws ConflictException when child name already exists', async () => {
       const repo = makeRepo({ createChild: jest.fn().mockResolvedValue(null) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await expect(service.createChild('Léa', 'parent-1')).rejects.toThrow(ConflictException);
     });
@@ -56,7 +66,7 @@ describe('UserService', () => {
   describe('deleteChild', () => {
     it('deletes a child the parent owns', async () => {
       const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('ok') });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await service.deleteChild('child-1', 'parent-1');
 
@@ -65,14 +75,14 @@ describe('UserService', () => {
 
     it('throws ForbiddenException when child belongs to another parent', async () => {
       const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('forbidden') });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await expect(service.deleteChild('child-1', 'wrong-parent')).rejects.toThrow(ForbiddenException);
     });
 
     it('throws NotFoundException when child does not exist', async () => {
       const repo = makeRepo({ deleteChild: jest.fn().mockResolvedValue('not_found') });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await expect(service.deleteChild('unknown-id', 'parent-1')).rejects.toThrow(NotFoundException);
     });
@@ -81,7 +91,7 @@ describe('UserService', () => {
   describe('updateContactType', () => {
     it('updates contact type to family', async () => {
       const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(true) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await service.updateContactType('user-1', 'contact-1', 'family');
 
@@ -90,7 +100,7 @@ describe('UserService', () => {
 
     it('throws BadRequestException for invalid contact type', async () => {
       const repo = makeRepo({ updateContactType: jest.fn() });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       await expect(service.updateContactType('user-1', 'contact-1', 'enemy')).rejects.toThrow(BadRequestException);
       expect(repo.updateContactType).not.toHaveBeenCalled();
@@ -98,16 +108,72 @@ describe('UserService', () => {
 
     it('throws NotFoundException when contact not in caller list', async () => {
       const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(false) });
-      const service = new UserService(repo as any);
+      const suggestionRepo = makeSuggestionRepo();
+      const service = makeService(repo, suggestionRepo);
 
       await expect(service.updateContactType('user-1', 'unknown', 'family')).rejects.toThrow(NotFoundException);
+      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the family suggestion when downgrading to friend', async () => {
+      const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(true) });
+      const suggestionRepo = makeSuggestionRepo();
+      const service = makeService(repo, suggestionRepo);
+
+      await service.updateContactType('user-1', 'contact-1', 'friend');
+
+      expect(suggestionRepo.dismissIfReciprocal).toHaveBeenCalledWith('user-1', 'contact-1');
+    });
+
+    it('does not dismiss when upgrading to family', async () => {
+      const repo = makeRepo({ updateContactType: jest.fn().mockResolvedValue(true) });
+      const suggestionRepo = makeSuggestionRepo();
+      const service = makeService(repo, suggestionRepo);
+
+      await service.updateContactType('user-1', 'contact-1', 'family');
+
+      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('addContactByPhone', () => {
+    it('rejects a null or unknown contactType before touching the repository', async () => {
+      const repo = makeRepo();
+      const service = makeService(repo);
+
+      await expect(service.addContactByPhone('user-1', '+33600000002', null as any)).rejects.toThrow(BadRequestException);
+      await expect(service.addContactByPhone('user-1', '+33600000002', 'enemy' as any)).rejects.toThrow(BadRequestException);
+      expect(repo.findByPhone).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeContact', () => {
+    it('dismisses the family suggestion when a contact was actually removed', async () => {
+      const repo = makeRepo({ removeContact: jest.fn().mockResolvedValue(true) });
+      const suggestionRepo = makeSuggestionRepo();
+      const service = makeService(repo, suggestionRepo);
+
+      await service.removeContact('user-1', 'contact-1');
+
+      expect(repo.removeContact).toHaveBeenCalledWith('user-1', 'contact-1');
+      expect(suggestionRepo.dismissIfReciprocal).toHaveBeenCalledWith('user-1', 'contact-1');
+    });
+
+    it('does not dismiss when nothing was removed', async () => {
+      const repo = makeRepo({ removeContact: jest.fn().mockResolvedValue(false) });
+      const suggestionRepo = makeSuggestionRepo();
+      const service = makeService(repo, suggestionRepo);
+
+      await service.removeContact('user-1', 'not-mine');
+
+      expect(suggestionRepo.dismissIfReciprocal).not.toHaveBeenCalled();
     });
   });
 
   describe('getShareToken', () => {
     it('returns the current share token', async () => {
       const repo = makeRepo({ getShareToken: jest.fn().mockResolvedValue('abc123') });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       const result = await service.getShareToken('user-1');
 
@@ -116,7 +182,7 @@ describe('UserService', () => {
 
     it('returns null when no token exists', async () => {
       const repo = makeRepo({ getShareToken: jest.fn().mockResolvedValue(null) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       const result = await service.getShareToken('user-1');
 
@@ -127,7 +193,7 @@ describe('UserService', () => {
   describe('generateShareToken', () => {
     it('persists a 32-char hex token and returns it', async () => {
       const repo = makeRepo({ setShareToken: jest.fn().mockResolvedValue(undefined) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       const result = await service.generateShareToken('user-1');
 
@@ -139,7 +205,7 @@ describe('UserService', () => {
   describe('revokeShareToken', () => {
     it('clears the token and returns success', async () => {
       const repo = makeRepo({ clearShareToken: jest.fn().mockResolvedValue(undefined) });
-      const service = new UserService(repo as any);
+      const service = makeService(repo);
 
       const result = await service.revokeShareToken('user-1');
 
