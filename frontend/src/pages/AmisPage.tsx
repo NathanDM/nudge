@@ -6,6 +6,7 @@ import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 import { BirthdayStrip } from '../components/home/BirthdayStrip';
+import { FAMILY_SUGGESTIONS_KEY } from '../hooks/useFamilySuggestions';
 
 function AddCard({ onClick }: { onClick: () => void }) {
   return (
@@ -32,7 +33,10 @@ export default function AmisPage() {
 
   const removeMutation = useMutation({
     mutationFn: (contactId: string) => apiClient.delete(`/users/contacts/${contactId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['friends'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: FAMILY_SUGGESTIONS_KEY });
+    },
   });
 
   useEffect(() => {

@@ -6,6 +6,8 @@ import { User } from '../types';
 import { AppShellContext } from '../components/layout/AppShell';
 import { AvatarCard } from '../components/home/AvatarCard';
 import { BirthdayStrip } from '../components/home/BirthdayStrip';
+import { FAMILY_SUGGESTIONS_KEY } from '../hooks/useFamilySuggestions';
+import { FamilySuggestionsSection } from '../components/family/FamilySuggestionsSection';
 import { useAuth } from '../hooks/useAuth';
 
 function AddCard({ onClick, label }: { onClick: () => void; label: string }) {
@@ -34,7 +36,10 @@ export default function FamillePage() {
 
   const removeMutation = useMutation({
     mutationFn: (contactId: string) => apiClient.delete(`/users/contacts/${contactId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['family'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['family'] });
+      queryClient.invalidateQueries({ queryKey: FAMILY_SUGGESTIONS_KEY });
+    },
   });
 
   useEffect(() => {
@@ -59,6 +64,8 @@ export default function FamillePage() {
         <h1 className="display text-[28px] font-black leading-tight" style={{ color: 'var(--ink)' }}>Ma famille</h1>
         <p className="text-[13px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>Les listes de tes proches, au même endroit.</p>
       </div>
+
+      <FamilySuggestionsSection/>
 
       {family.length === 0 ? (
         <div className="px-5 mt-10 flex flex-col items-center text-center">

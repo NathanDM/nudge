@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useFamilySuggestionsQuery } from '../../hooks/useFamilySuggestions';
 
 type Props = { drawerOpen: boolean; onFabClick: () => void };
 
@@ -38,11 +39,25 @@ function ProfileIcon({ active }: { active: boolean }) {
   );
 }
 
-function NavBtn({ label, active, onClick, icon }: { label: string; active: boolean; onClick: () => void; icon: React.ReactNode }) {
+type NavBtnProps = { label: string; active: boolean; onClick: () => void; icon: React.ReactNode; badge?: number };
+
+function Badge({ count }: { count: number }) {
+  return (
+    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+          style={{ background: 'var(--active)' }} aria-label={`${count} nouveaux proches`}>
+      {count}
+    </span>
+  );
+}
+
+function NavBtn({ label, active, onClick, icon, badge = 0 }: NavBtnProps) {
   return (
     <button onClick={onClick} className="flex flex-col items-center gap-1 w-14 py-1 transition"
             style={{ color: active ? 'var(--active)' : 'var(--ink-mute)' }}>
-      {icon}
+      <span className="relative">
+        {icon}
+        {badge > 0 && <Badge count={badge}/>}
+      </span>
       <span className={`text-[10px] ${active ? 'font-bold' : 'font-semibold'}`}>{label}</span>
       <div className="h-0.5 w-1 rounded-full mt-0.5" style={{ background: active ? 'var(--active)' : 'transparent' }}/>
     </button>
@@ -53,6 +68,7 @@ export default function BottomNav({ drawerOpen, onFabClick }: Props) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { data: suggestions = [] } = useFamilySuggestionsQuery();
 
   const isFamille = location.pathname === '/';
   const isAmis = location.pathname === '/amis';
@@ -63,7 +79,7 @@ export default function BottomNav({ drawerOpen, onFabClick }: Props) {
     <nav className="fixed bottom-0 left-0 right-0 z-40">
       <div className="absolute bottom-0 left-0 right-0 h-[86px] bg-white" style={{ boxShadow: '0 -1px 0 rgba(31,27,23,0.06)' }}/>
       <div className="relative max-w-4xl mx-auto flex items-end justify-around px-2 pb-4 pt-2">
-        <NavBtn label="Famille" active={isFamille} onClick={() => navigate('/')} icon={<HomeIcon active={isFamille}/>}/>
+        <NavBtn label="Famille" active={isFamille} onClick={() => navigate('/')} icon={<HomeIcon active={isFamille}/>} badge={Math.min(suggestions.length, 99)}/>
         <NavBtn label="Amis" active={isAmis} onClick={() => navigate('/amis')} icon={<FriendsIcon active={isAmis}/>}/>
         <button
           onClick={onFabClick}

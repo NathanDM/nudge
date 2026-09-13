@@ -6,6 +6,12 @@ export interface User {
   birthdate?: string | null;
 }
 
+export interface FamilySuggestion {
+  id: string;
+  name: string;
+  currentType: 'friend' | null;
+}
+
 export interface Gift {
   id: string;
   forUserId: string;
