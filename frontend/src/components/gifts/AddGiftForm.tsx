@@ -3,7 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../api/client';
 import { Gift } from '../../types';
 
-type GiftPayload = { title: string; description?: string; url?: string; price?: number; secret?: boolean };
+type GiftPayload = {
+  title: string; description?: string; url?: string; price?: number; imageUrl?: string; secret?: boolean;
+};
 
 interface Props {
   forUserId: string;
@@ -21,6 +23,7 @@ export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onS
   const [description, setDescription] = useState(gift?.description ?? '');
   const [url, setUrl] = useState(gift?.url ?? '');
   const [price, setPrice] = useState(gift?.price ? String(gift.price / 100) : '');
+  const [image, setImage] = useState(gift?.ogImageUrl ?? '');
   const isSecret = mode === 'secret';
   const isEdit = !!gift;
 
@@ -33,6 +36,7 @@ export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onS
       setDescription('');
       setUrl('');
       setPrice('');
+      setImage('');
       onSuccess?.();
     },
   });
@@ -48,6 +52,7 @@ export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onS
       description: description || undefined,
       url: url || undefined,
       price: price ? Math.round(parseFloat(price) * 100) : undefined,
+      imageUrl: image || undefined,
       secret: isEdit ? undefined : secret ?? isSecret,
     });
   };
@@ -110,6 +115,8 @@ export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onS
         />
       </div>
 
+      <ImageField value={image} onChange={setImage} inputClass={inputClass} inputStyle={inputStyle}/>
+
       {!formId && (
         <button
           type="submit"
@@ -121,5 +128,30 @@ export default function AddGiftForm({ forUserId, gift, mode = 'own', secret, onS
         </button>
       )}
     </form>
+  );
+}
+
+function ImageField({ value, onChange, inputClass, inputStyle }: {
+  value: string; onChange: (v: string) => void; inputClass: string; inputStyle: React.CSSProperties;
+}) {
+  return (
+    <div>
+      <label htmlFor="gift-image" className="block text-[12px] font-bold mb-1.5" style={{ color: 'var(--ink)' }}>
+        Image (optionnel)
+      </label>
+      <div className="flex items-center gap-2">
+        {value && <img src={value} alt="Aperçu" className="w-11 h-11 rounded-lg object-cover shrink-0" style={inputStyle}/>}
+        <input
+          id="gift-image"
+          type="url"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://…/image.jpg"
+          className={inputClass}
+          style={inputStyle}
+        />
+      </div>
+      <p className="text-[11px] mt-1" style={{ color: 'var(--ink-soft)' }}>Remplace l'image récupérée depuis le lien.</p>
+    </div>
   );
 }

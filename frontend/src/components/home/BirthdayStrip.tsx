@@ -59,23 +59,22 @@ export function BirthdayStrip({ contacts }: Props) {
         <div className="text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: 'var(--ink-soft)' }}>Prochains anniversaires</div>
         <div className="text-[11px]" style={{ color: 'var(--ink-mute)' }}>À venir</div>
       </div>
-      <div className="px-5">
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {upcoming.map(({ member, days, date }) => {
-            const { bg, fg } = colorForId(member.id);
-            return (
-              <div key={member.id}
-                className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-bold"
-                style={{ background: '#fff', border: '1px solid var(--line)', color: 'var(--ink)' }}>
-                <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: bg, color: fg }}>
-                  <GiftIcon/>
-                </span>
-                <span>{firstName(member.name)}</span>
-                <span className="text-[10px] font-semibold" style={{ color: 'var(--ink-mute)' }}>{formatCountdown(days, date)}</span>
-              </div>
-            );
-          })}
-        </div>
+      <div className="flex gap-2 overflow-x-auto pl-5 pb-1" style={{ scrollbarWidth: 'none' }}>
+        {upcoming.map(({ member, days, date }) => {
+          const { bg, fg } = colorForId(member.id);
+          return (
+            <div key={member.id}
+              className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-full text-[12px] font-bold"
+              style={{ background: '#fff', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+              <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ background: bg, color: fg }}>
+                <GiftIcon/>
+              </span>
+              <span>{firstName(member.name)}</span>
+              <span className="text-[10px] font-semibold" style={{ color: 'var(--ink-mute)' }}>{formatCountdown(days, date)}</span>
+            </div>
+          );
+        })}
+        <div aria-hidden className="shrink-0 w-3"/>
       </div>
     </>
   );

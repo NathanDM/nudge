@@ -23,7 +23,7 @@ function AddCard({ onClick }: { onClick: () => void }) {
 }
 
 export default function AmisPage() {
-  const { setCloseHandler, notifyDrawerOpen, openInvitePicker } = useOutletContext<AppShellContext>();
+  const { setCloseHandler, notifyDrawerOpen, openInvitePicker, setFabAction } = useOutletContext<AppShellContext>();
   const queryClient = useQueryClient();
 
   const { data: friends = [], isLoading, isError } = useQuery<User[]>({
@@ -44,6 +44,11 @@ export default function AmisPage() {
     notifyDrawerOpen(false);
     return () => { setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => {
+    setFabAction(() => openInvitePicker('friend'));
+    return () => setFabAction(null);
+  }, [setFabAction, openInvitePicker]);
 
   if (isLoading)
     return <div className="px-5 pt-16 text-center text-sm font-semibold" style={{ color: 'var(--ink-mute)' }}>Chargement…</div>;

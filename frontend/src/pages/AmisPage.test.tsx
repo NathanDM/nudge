@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import apiClient from '../api/client';
-import { outletContext, renderPage, longPressRemove } from './pages-test-helpers';
+import { outletContext, renderPage, longPressRemove, pressFab } from './pages-test-helpers';
 import AmisPage from './AmisPage';
 
 vi.mock('../api/client', () => ({ default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }));
@@ -16,6 +16,17 @@ const del = vi.mocked(apiClient.delete);
 beforeEach(() => vi.clearAllMocks());
 
 describe('AmisPage', () => {
+  it('opens the friend invite form from the + button', async () => {
+    // GIVEN
+    get.mockResolvedValue({ data: [] });
+    renderPage(<AmisPage/>);
+    await waitFor(() => expect(get).toHaveBeenCalled());
+    // WHEN
+    pressFab();
+    // THEN
+    expect(outletContext.openInvitePicker).toHaveBeenCalledWith('friend');
+  });
+
   it('removing a friend invalidates friends and family-suggestions (regression)', async () => {
     // GIVEN
     get.mockResolvedValue({ data: [{ id: 'bob', name: 'Bob', managedBy: null }] });

@@ -145,6 +145,7 @@ export default function GiftCard({ gift, forUserId, isOwnList, onEdit }: Props) 
   const swipe = useSwipeActions(hasActions, ACTION_WIDTH * actionCount);
   const priceDisplay = gift.price ? `${(gift.price / 100).toFixed(0)}\u202f€` : null;
   const claimedByOther = !!gift.claimedByUserId && !gift.canUnclaim;
+  const dimmed = claimedByOther ? 'opacity-55' : '';
 
   const handleCardClick = () => {
     if (swipe.isOpen) { swipe.close(); return; }
@@ -170,13 +171,13 @@ export default function GiftCard({ gift, forUserId, isOwnList, onEdit }: Props) 
 
       <div
         style={{ transform: `translateX(${swipe.offsetX}px)`, transition: swipe.dragging ? 'none' : 'transform 200ms ease' }}
-        className={`bg-white ${claimedByOther ? 'opacity-55' : ''} ${gift.url || swipe.isOpen ? 'cursor-pointer' : ''}`}
+        className={`bg-white ${gift.url || swipe.isOpen ? 'cursor-pointer' : ''}`}
         onClick={handleCardClick}
         onTouchStart={swipe.onTouchStart}
         onTouchMove={swipe.onTouchMove}
         onTouchEnd={swipe.onTouchEnd}
       >
-        <button onClick={handleCardClick} className="w-full flex gap-3.5 p-3.5 text-left">
+        <button onClick={handleCardClick} className={`w-full flex gap-3.5 p-3.5 text-left ${dimmed}`}>
           <GiftThumb gift={gift}/>
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex items-start justify-between gap-2">
@@ -194,7 +195,7 @@ export default function GiftCard({ gift, forUserId, isOwnList, onEdit }: Props) 
           </div>
         </button>
 
-        <div className="flex items-center justify-between gap-2 px-3.5 pb-3.5 -mt-1" onClick={(e) => e.stopPropagation()}>
+        <div className={`flex items-center justify-between gap-2 px-3.5 pb-3.5 -mt-1 ${dimmed}`} onClick={(e) => e.stopPropagation()}>
           {!isOwnList ? (
             <GuestFooter
               gift={gift} claimedByOther={claimedByOther}
@@ -256,7 +257,9 @@ function GuestFooter({ gift, claimedByOther, onClaim, onUnclaim, claimPending, u
         </button>
       )}
       {claimedByOther && (
-        <span className="text-[11px] font-medium" style={{ color: 'var(--ink-mute)' }}>Quelqu'un s'en occupe</span>
+        <span className="text-[11px] font-medium" style={{ color: 'var(--ink-mute)' }}>
+          {gift.claimedByName ? `Réservé par ${gift.claimedByName}` : "Quelqu'un s'en occupe"}
+        </span>
       )}
     </>
   );

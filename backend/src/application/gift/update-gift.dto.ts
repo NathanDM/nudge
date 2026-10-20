@@ -3,4 +3,5 @@ export class UpdateGiftDto {
   description?: string;
   url?: string;
   price?: number;
+  imageUrl?: string;
 }

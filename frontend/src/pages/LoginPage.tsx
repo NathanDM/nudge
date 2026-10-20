@@ -6,7 +6,7 @@ import apiClient from '../api/client';
 type Mode = 'login' | 'register';
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<Mode>('register');
+  const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
@@ -83,7 +83,7 @@ export default function LoginPage() {
           {([['register', 'Créer mon compte'], ['login', 'Se connecter']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={mode === k} onClick={() => switchMode(k)}
               className="flex-1 py-2.5 text-[12px] font-bold rounded-xl transition"
-              style={{ background: mode === k ? 'var(--sage)' : 'transparent', color: mode === k ? '#fff' : 'var(--ink-soft)' }}>
+              style={{ background: mode === k ? 'var(--active)' : 'transparent', color: mode === k ? '#fff' : 'var(--ink-soft)' }}>
               {l}
             </button>
           ))}
@@ -113,7 +113,7 @@ export default function LoginPage() {
           {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
           <button type="submit" disabled={!isValid || loading}
             className="w-full rounded-2xl py-3.5 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-40 mt-2"
-            style={{ background: 'var(--sage)' }}>
+            style={{ background: 'var(--active)' }}>
             {loading ? '…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
           </button>
         </form>

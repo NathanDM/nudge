@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import apiClient from '../api/client';
-import { outletContext, renderPage, longPressRemove } from './pages-test-helpers';
+import { outletContext, renderPage, longPressRemove, pressFab } from './pages-test-helpers';
 import FamillePage from './FamillePage';
 
 vi.mock('../api/client', () => ({ default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }));
@@ -22,6 +22,17 @@ const mockApi = (suggestions: unknown[]) =>
 beforeEach(() => vi.clearAllMocks());
 
 describe('FamillePage', () => {
+  it('opens the family invite form from the + button', async () => {
+    // GIVEN
+    mockApi([]);
+    renderPage(<FamillePage/>);
+    await screen.findByText('Ma famille');
+    // WHEN
+    pressFab();
+    // THEN
+    expect(outletContext.openInvitePicker).toHaveBeenCalledWith('family');
+  });
+
   it('shows the "Ils t\'ont ajouté" section when suggestions exist', async () => {
     mockApi([{ id: 'eve', name: 'Eve', currentType: null, via: null }]);
 

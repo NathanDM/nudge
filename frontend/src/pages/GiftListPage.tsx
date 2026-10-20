@@ -46,7 +46,7 @@ export default function GiftListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const { setCloseHandler, notifyDrawerOpen, setViewingUserId } = useOutletContext<AppShellContext>();
+  const { setCloseHandler, notifyDrawerOpen, setViewingUserId, setFabAction } = useOutletContext<AppShellContext>();
   const isOwnList = user?.id === userId;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>('own');
@@ -108,6 +108,11 @@ export default function GiftListPage() {
   useEffect(() => {
     return () => { setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => {
+    setFabAction(() => openDrawer(fabDrawerMode(isOwnList, activeTab)));
+    return () => setFabAction(null);
+  }, [setFabAction, openDrawer, isOwnList, activeTab]);
 
   const visibleGifts = (gifts ?? []).filter((g) => !g.secret);
   const secretGifts = (gifts ?? []).filter((g) => g.secret);
@@ -273,6 +278,11 @@ export default function GiftListPage() {
   );
 }
 
+function fabDrawerMode(isOwnList: boolean, activeTab: 'wishlist' | 'secret'): DrawerMode {
+  if (isOwnList) return 'own';
+  return activeTab === 'secret' ? 'secret' : 'suggestion';
+}
+
 function shareTarget(isOwnList: boolean, isManagedChild: boolean, userId?: string): ShareTarget | null {
   if (isOwnList) return { kind: 'self' };
   if (isManagedChild && userId) return { kind: 'child', childId: userId };
@@ -314,17 +324,7 @@ function VisibilityBanner({ mode, targetName }: { mode: DrawerMode; targetName: 
       </div>
     </div>
   );
-  if (mode === 'suggestion') return (
-    <div className="rounded-2xl p-3.5 mb-4 flex gap-3" style={{ background: 'rgba(165,200,191,0.18)', border: '1px solid rgba(165,200,191,0.4)' }}>
-      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white" style={{ background: 'var(--sage)' }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-      </div>
-      <div className="flex-1 min-w-0 text-[12px] leading-relaxed" style={{ color: 'var(--ink-soft)' }}>
-        <div className="text-[13px] font-bold mb-0.5" style={{ color: 'var(--active)' }}>{targetName} pourra voir cette idée.</div>
-        Elle apparaîtra dans sa liste — elle pourra la garder ou la supprimer.
-      </div>
-    </div>
-  );
+  if (mode === 'suggestion') return null;
   return (
     <div className="rounded-2xl p-3.5 mb-4 flex gap-3" style={{ background: 'rgba(165,200,191,0.18)', border: '1px solid rgba(165,200,191,0.4)' }}>
       <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white" style={{ background: 'var(--sage)' }}>

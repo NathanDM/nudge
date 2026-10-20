@@ -85,7 +85,7 @@ function ChildRow({ child }: { child: User }) {
 export default function ProfilePage() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
-  const { setCloseHandler, notifyDrawerOpen, openAddChild } = useOutletContext<AppShellContext>();
+  const { setCloseHandler, notifyDrawerOpen, openAddChild, setFabAction } = useOutletContext<AppShellContext>();
   const [shareToken, setShareToken] = useState<string | null | undefined>(undefined);
   const [shareLoading, setShareLoading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -98,6 +98,11 @@ export default function ProfilePage() {
     notifyDrawerOpen(false);
     return () => { setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => {
+    setFabAction(() => openAddChild());
+    return () => setFabAction(null);
+  }, [setFabAction, openAddChild]);
 
   const { data: children = [] } = useQuery<User[]>({
     queryKey: ['children'],

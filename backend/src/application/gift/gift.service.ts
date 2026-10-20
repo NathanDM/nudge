@@ -13,6 +13,7 @@ import { UserRepository, USER_REPOSITORY } from '../../domain/user/user.reposito
 import { GiftResponseDto } from './gift.dto';
 import { CreateGiftDto } from './create-gift.dto';
 import { UpdateGiftDto } from './update-gift.dto';
+import { needsLinkImage, parseImageUrl } from './gift-image';
 
 type OgData = { imageUrl: string | null; title: string | null; price: number | null };
 
@@ -168,6 +169,7 @@ export class GiftService {
       price: g.price,
       ogImageUrl: g.ogImageUrl,
       claimedByUserId: g.claimedByUserId,
+      claimedByName: managerId ? g.claimedByName : undefined,
       claimedAt: g.claimedAt,
       canClaim: g.canBeClaimedBy(viewerId),
       canUnclaim: g.canBeUnclaimedBy(viewerId),
@@ -183,6 +185,7 @@ export class GiftService {
     addedByUserId: string,
     dto: CreateGiftDto,
   ) {
+    const image = parseImageUrl(dto.imageUrl);
     const og = dto.url ? await fetchOgData(dto.url) : { imageUrl: null, title: null, price: null };
     const title = dto.title || og.title;
     if (!title) throw new BadRequestException('Titre requis');
@@ -193,7 +196,7 @@ export class GiftService {
       description: dto.description,
       url: dto.url,
       price: dto.price ?? og.price,
-      ogImageUrl: og.imageUrl,
+      ogImageUrl: image ?? og.imageUrl,
       secret: dto.secret ?? false,
     });
   }
@@ -206,15 +209,17 @@ export class GiftService {
       throw new ForbiddenException('Cannot edit this gift idea');
 
     const url = dto.url || null;
+    const image = parseImageUrl(dto.imageUrl);
     const urlChanged = url !== gift.url;
-    const og = urlChanged && url ? await fetchOgData(url) : null;
-    const title = dto.title || og?.title || gift.title;
+    const fromLink = needsLinkImage({ requested: image, current: gift.ogImageUrl, linkChanged: urlChanged });
+    const og = url && (urlChanged || fromLink) ? await fetchOgData(url) : null;
+    const linkOg = urlChanged ? og : null;
     return this.giftRepo.update(giftId, {
-      title,
+      title: dto.title || linkOg?.title || gift.title,
       description: dto.description || null,
       url,
-      price: dto.price ?? og?.price ?? null,
-      ogImageUrl: urlChanged ? og?.imageUrl ?? null : gift.ogImageUrl,
+      price: dto.price ?? linkOg?.price ?? null,
+      ogImageUrl: fromLink ? og?.imageUrl ?? null : image,
     });
   }
 

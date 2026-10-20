@@ -3,5 +3,6 @@ export class CreateGiftDto {
   description?: string;
   url?: string;
   price?: number;
+  imageUrl?: string;
   secret?: boolean;
 }

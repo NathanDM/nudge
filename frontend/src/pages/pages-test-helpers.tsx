@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { makeQueryClient, withQueryClient } from '../test-utils';
 import { LONG_PRESS_MS } from '../components/home/AvatarCard';
@@ -7,9 +8,15 @@ export const outletContext = {
   setCloseHandler: () => {},
   notifyDrawerOpen: () => {},
   setViewingUserId: () => {},
-  openInvitePicker: () => {},
-  openAddChild: () => {},
+  openInvitePicker: vi.fn(),
+  openAddChild: vi.fn(),
+  setFabAction: vi.fn(),
 };
+
+export function pressFab() {
+  const actions = outletContext.setFabAction.mock.calls.map(([action]) => action).filter(Boolean);
+  act(() => actions[actions.length - 1]());
+}
 
 export async function longPressRemove(avatar: HTMLElement) {
   fireEvent.mouseDown(avatar);

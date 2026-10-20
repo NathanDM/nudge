@@ -25,7 +25,7 @@ function AddCard({ onClick, label }: { onClick: () => void; label: string }) {
 }
 
 export default function FamillePage() {
-  const { setCloseHandler, notifyDrawerOpen, openInvitePicker, openAddChild } = useOutletContext<AppShellContext>();
+  const { setCloseHandler, notifyDrawerOpen, openInvitePicker, openAddChild, setFabAction } = useOutletContext<AppShellContext>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -47,6 +47,11 @@ export default function FamillePage() {
     notifyDrawerOpen(false);
     return () => { setCloseHandler(null); notifyDrawerOpen(false); };
   }, [setCloseHandler, notifyDrawerOpen]);
+
+  useEffect(() => {
+    setFabAction(() => openInvitePicker('family'));
+    return () => setFabAction(null);
+  }, [setFabAction, openInvitePicker]);
 
   const adults = family.filter((m) => !m.managedBy);
   const myChildren = family.filter((m) => m.managedBy === user?.id);

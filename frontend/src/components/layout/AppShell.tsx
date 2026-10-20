@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/useAuth';
@@ -14,6 +14,7 @@ export type AppShellContext = {
   setViewingUserId: (id: string | null) => void;
   openInvitePicker: (contactType?: 'family' | 'friend') => void;
   openAddChild: () => void;
+  setFabAction: (action: (() => void) | null) => void;
 };
 
 function HeartIcon() {
@@ -215,6 +216,11 @@ export default function AppShell() {
     setViewingUserIdState(id);
   }, []);
 
+  const fabActionRef = useRef<(() => void) | null>(null);
+  const setFabAction = useCallback((action: (() => void) | null) => {
+    fabActionRef.current = action;
+  }, []);
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const context: AppShellContext = {
@@ -223,10 +229,12 @@ export default function AppShell() {
     setViewingUserId,
     openInvitePicker: (ct = 'friend') => { setInviteContactType(ct); setInviteOpen(true); },
     openAddChild: () => setChildOpen(true),
+    setFabAction,
   };
 
   const handleFabClick = () => {
     if (drawerOpen && closeHandler) { closeHandler(); return; }
+    if (fabActionRef.current) { fabActionRef.current(); return; }
     navigate(`/user/${user?.id}?addIdea=true`);
   };
 

@@ -38,12 +38,20 @@ beforeEach(() => {
 });
 
 describe('LoginPage', () => {
+  it('selects the login tab by default', () => {
+    // GIVEN / WHEN
+    renderPage();
+    // THEN
+    expect(screen.getByRole('tab', { name: /se connecter/i })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('auto-switches to login and keeps phone when register returns 409', async () => {
     const user = userEvent.setup();
     const conflictError = { response: { status: 409 } };
     mockRegister.mockRejectedValueOnce(conflictError);
 
     renderPage();
+    await user.click(screen.getByRole('tab', { name: /créer mon compte/i }));
 
     await user.type(screen.getByPlaceholderText('Votre prénom'), 'Marie');
     await user.type(screen.getByPlaceholderText('+33 6 12 34 56 78'), '0601020304');
@@ -67,6 +75,7 @@ describe('LoginPage', () => {
     );
 
     renderPage();
+    await user.click(screen.getByRole('tab', { name: /créer mon compte/i }));
 
     await user.type(screen.getByPlaceholderText('Votre prénom'), 'Test');
     await user.type(screen.getByPlaceholderText('+33 6 12 34 56 78'), '0601020304');
@@ -87,6 +96,7 @@ describe('LoginPage', () => {
     mockRegister.mockRejectedValueOnce({});
 
     renderPage();
+    await user.click(screen.getByRole('tab', { name: /créer mon compte/i }));
 
     await user.type(screen.getByPlaceholderText('Votre prénom'), 'Test');
     await user.type(screen.getByPlaceholderText('+33 6 12 34 56 78'), '0601020304');
